@@ -8,6 +8,7 @@ Scott Schwartz software used:
     - Extensions:
         - Matlab Extension Pack: https://marketplace.visualstudio.com/items?itemName=bat67.matlab-extension-pack
         - vscode-pdf: https://marketplace.visualstudio.com/items?itemName=tomoki1207.pdf
-        - Various py and jupyter extensions
+        - vscode-tiff: https://marketplace.visualstudio.com/items?itemName=ucodkr.tiff-preview
+        - Various py and jupyter extensions - "jupyter" extension, "jupyter keymap" extension, "Pylance" extension, "Python" extension - all help with viewing code within visual studio code in a more visually friendly manner while editing and viewing it.
 
 File size management: in order to make the repository not excessively large a solution for keeping the cropped images is currently being developed using a second repo
