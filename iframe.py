@@ -24,8 +24,8 @@ for files in glob.glob(data_folder_path + os.path.sep + '*origandcorr.jpg'):
     try: 
         os.remove(files)
     except: pass
-
-filename = glob.glob(data_folder_path + os.path.sep + '3.603141535*')
+run = '3.603154717'
+filename = glob.glob(data_folder_path + os.path.sep + run+'*')
 for i in filename:
     img = Image.open(i)
     imgarray = np.array(img)
@@ -48,13 +48,13 @@ for i in range(len(filename)):
     size = (width,height)
     imgs.append(iMG)
     # imgs.append(img)
-out = cv2.VideoWriter('project.avi',cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
+out = cv2.VideoWriter(run+'.avi',cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
 
 for i in range(len(imgs)):
     out.write(imgs[i])
 out.release()
 from os import startfile
-startfile("C:\\Users\\Scott\\Documents\\GitHub\\Snowball2\\project.avi")
+startfile("C:\\Users\\Scott\\Documents\\GitHub\\Snowball2\\"+run+".avi")
 for files in glob.glob(data_folder_path + os.path.sep + '*origandcorr.jpg'):
     try: 
         os.remove(files)
