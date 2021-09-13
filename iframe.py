@@ -31,9 +31,9 @@ for i in filename:
     imgarray = np.array(img)
     # imgarray = imgarray.astype(np.float32)
     img_array.append(imgarray)
-bkgd = img_array[0]/50
+bkgd = img_array[1]/50
 for i in range(49):
-    bkgd = bkgd + img_array[i+1]/50
+    bkgd = bkgd + img_array[i+2]/50
 imgs = []
 for i in range(len(filename)):
     # print(i)
@@ -46,13 +46,13 @@ for i in range(len(filename)):
     size = (width,height)
     imgs.append(iMG)
     
-out = cv2.VideoWriter(run+'.avi',cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
+out = cv2.VideoWriter(run+'.avi',cv2.VideoWriter_fourcc(*'DIVX'), 15, size, isColor=0)
 
 for i in range(len(imgs)):
-    out.write(cv2.merge([imgs[i],imgs[i],imgs[i]]))
+    out.write(imgs[i])
 out.release()
 from os import startfile
-startfile("C:\\Users\\Scott\\Documents\\GitHub\\Snowball2\\"+run+".avi")
+startfile(this_repo_path+os.path.sep+run+".avi")
 # for files in glob.glob(data_folder_path + os.path.sep + '*origandcorr.jpg'):
 #     try: 
 #         os.remove(files)
