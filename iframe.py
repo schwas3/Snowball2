@@ -20,15 +20,16 @@ data_folder_path = data_repo_path + os.path.sep + data_folder_name
 from PIL import Image
 import glob
 img_array = []
-for files in glob.glob(data_folder_path + os.path.sep + '*origandcorr.jpg'):
-    try: 
-        os.remove(files)
-    except: pass
+# for files in glob.glob(data_folder_path + os.path.sep + '*origandcorr.jpg'):
+#     try: 
+#         os.remove(files)
+#     except: pass
 run = '3.603154717'
 filename = glob.glob(data_folder_path + os.path.sep + run+'*')
 for i in filename:
     img = Image.open(i)
     imgarray = np.array(img)
+    # imgarray = imgarray.astype(np.float32)
     img_array.append(imgarray)
 bkgd = img_array[0]/50
 for i in range(49):
@@ -40,25 +41,22 @@ for i in range(len(filename)):
     corr_img=imG-bkgd
     corr_img = np.where(corr_img<0, 0,corr_img)
     img=np.concatenate((imG,corr_img),axis=1)
-    img=np.rint(img)
-    # print(img)
-    cv2.imwrite(filename[i]+'origandcorr'+".jpg",img)
-    iMG=cv2.imread(filename[i]+'origandcorr'+".jpg")
-    height, width, layers = iMG.shape
+    iMG=np.array(img).astype(np.uint8)
+    height, width = iMG.shape
     size = (width,height)
     imgs.append(iMG)
-    # imgs.append(img)
+    
 out = cv2.VideoWriter(run+'.avi',cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
 
 for i in range(len(imgs)):
-    out.write(imgs[i])
+    out.write(cv2.merge([imgs[i],imgs[i],imgs[i]]))
 out.release()
 from os import startfile
 startfile("C:\\Users\\Scott\\Documents\\GitHub\\Snowball2\\"+run+".avi")
-for files in glob.glob(data_folder_path + os.path.sep + '*origandcorr.jpg'):
-    try: 
-        os.remove(files)
-    except: pass
+# for files in glob.glob(data_folder_path + os.path.sep + '*origandcorr.jpg'):
+#     try: 
+#         os.remove(files)
+#     except: pass
 
 
 # for i in filename:
