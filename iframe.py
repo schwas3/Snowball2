@@ -8,7 +8,7 @@ import yaml
 import cv2
 from PIL import Image
 import glob
-from os import startfile
+from os import read, startfile
 
 # WIP
 this_file_path = os.path.realpath(__file__) # gets the path to this file including the file
@@ -17,7 +17,7 @@ github_path, this_repo_name = os.path.split(this_repo_path) # gets the users git
 ## ----- ENTER THE DATA FILE LOCATION INFORMATION HERE ----- ##
 data_repo_name = "Snowball3"
 data_repo_path = github_path + os.path.sep + data_repo_name
-data_folder_name = 'SNOWBALL CROPPED IMAGES' + os.path.sep + 'control 08 - 8 bit'
+data_folder_name = 'SNOWBALL CROPPED IMAGES' + os.path.sep + 'Cs-137 04 - 8 bit'
 data_folder_path = data_repo_path + os.path.sep + data_folder_name # THIS LINE MUST BE CORRECT EVERYTHING ELSE IS NOT ESSENTIAL
 # the above line must include the path to the folder containing runs (i.e. 'PATH/control 08 - 8 bit')
 
@@ -39,22 +39,6 @@ def getRunsFromGroup(groupFolder): # str - name of group, str array - names of r
         runTimestamps_RFG[-1].append(timestamp_RFG)
         runImages_RFG[-1].append(np.array(Image.open(i)))
     return groupName_RFG, runNames_RFG, runTimestamps_RFG, runImages_RFG
-def getBackground(images, startFrame, stopFrame): # returns a background by averaging the images between startFrame and stopFrame from provided images
-    background = np.zeros([len(images[0]),len(images[0][0])],dtype=int)
-    for i in range(startFrame,stopFrame):
-        background += images[i]
-    background = background/(stopFrame - startFrame)
-    return background
-def backgroundCorrected(background, images, scale: bool, scale2: bool): # subtracts background from images, if scale all images are shifted so that 0-max(background) => 0 while 255 => 255
-    images = images - background
-    if scale:
-        background_max = np.max(background)
-        if scale2:
-            background_max = 255
-        images += background_max
-        images *= 255/(255+background_max)
-    images = np.where(images < 0, 0, images)
-    return images
 def imgNumStamps(frameNum, loc1, loc2, origGrid): # this def includes a frame stamp at [loc1][loc2] on origGrid with frameNum works with '-' character as well
     frameNums = []
     frameNum = str(frameNum)
@@ -88,36 +72,39 @@ def addLeadingZeros(finalLength, currentText): # adds leading zeros to match the
     while len(currentText) < finalLength:
         currentText = '0' + currentText
     return currentText
-groupName, runNames, runTimesteps, runImages = getRunsFromGroup(data_folder_path)
-trifoldImages = []
-runsOfInterest = range(len(runNames))
-for runNumber in runsOfInterest:
-    thisRunName = runNames[runNumber]
-    thisRunTimesteps = runTimesteps[runNumber]
-    thisRunImages = runImages[runNumber]
-    # thisRunBackground = getBackground(thisRunImages,1,51)
-    # thisRunCorrectedImages = backgroundCorrected(thisRunBackground,thisRunImages,scale = False, scale2 = False)
-    # thisRunCorrectedScaledImages = backgroundCorrected(thisRunBackground,thisRunImages,scale = True, scale2 = False)
-    # thisRunCorrectedScaledImages2 = backgroundCorrected(thisRunBackground,thisRunImages,scale = True, scale2 = True)
-    # thisRunTrifoldImages = []
-    for frameNumber in range(len(runImages[runNumber])):
-        thisFrameTrifoldImage = thisRunImages[frameNumber]
-        # thisFrameTrifoldImage1 = np.concatenate((thisRunImages[frameNumber],thisRunCorrectedImages[frameNumber]),axis=1)
-        # thisFrameTrifoldImage2 = np.concatenate((thisRunCorrectedScaledImages[frameNumber],thisRunCorrectedScaledImages2[frameNumber]),axis=1)
-        # thisFrameTrifoldImage = np.concatenate((thisFrameTrifoldImage1,thisFrameTrifoldImage2),axis=0)
-        # thisFrameDeltaImage = (np.array(thisRunImages[frameNumber],dtype=np.float32) - np.array(thisRunImages[frameNumber-4],dtype=np.float32) + 255)//2
-        # thisFrameDeltaImage = ((4*np.array(thisRunImages[frameNumber],dtype=np.float32) - 1*np.array(thisRunImages[frameNumber-1],dtype=np.float32) - 1*np.array(thisRunImages[frameNumber-2],dtype=np.float32) - 1*np.array(thisRunImages[frameNumber-3],dtype=np.float32) - 1*np.array(thisRunImages[frameNumber-4],dtype=np.float32))/4 + 255)//2
-        # thisFrameDeltaImage += 255
-        # thisFrameDeltaImage = np.divide(thisFrameDeltaImage,2)
-        # thisFrameTrifoldImage = np.concatenate((thisRunImages[frameNumber],thisFrameDeltaImage),axis=1)
-        # thisFrameTrifoldImage = imgNumStamps(addLeadingZeros(2,runNumber+1)+'-'+addLeadingZeros(3,frameNumber),0,0,thisFrameTrifoldImage)
-        # thisFrameTrifoldImage = imgNumStamps(thisRunName,len(thisFrameTrifoldImage)-15,0,thisFrameTrifoldImage)
-        # thisFrameTrifoldImage = imgNumStamps(addLeadingZeros(10,thisRunTimesteps[frameNumber]),len(thisFrameTrifoldImage)-8,0,thisFrameTrifoldImage)
-        # for i in range(0,255,5):
-        #     for j in range(5):
-        #         thisFrameTrifoldImage[int(len(thisFrameTrifoldImage)/2-i/5)][j] = 255-(i+j)
+groupName, runNames, runTimesteps, runImages = getRunsFromGroup(data_folder_path) # calls getRunsFromGroup data_folder_path MUST BE A COMPLETE PATH, ALL 
+
+# --- These should be configured --- #
+runsOfInterest = [7,12,45,20,41,32] # range(len(runNames)) # MUST be an array of run indices (0-indexed)
+writeVid=True # self explanatory
+# --- #
+images = [] # initializes the array used to store images to make a movie
+batchName = ''
+for i in range(len(runsOfInterest)):
+    batchName += str(1+runsOfInterest[i]) + ','
+correctedImages = [] # initializes the array used to store corrected images used for detection
+for runNumber in runsOfInterest: # iterates over all runNumber in runsOfInterest (note: runNumber is 0-indexed)
+    thisRunName = runNames[runNumber] # pulls the name of the run (i.e. the prefix)
+    thisRunTimesteps = runTimesteps[runNumber] # pulls all the timesteps for the current run
+    thisRunImages = runImages[runNumber] # pulls all the frames in the current run
+    fgbg = cv2.createBackgroundSubtractorMOG2(history = 80,varThreshold = 20, detectShadows = False) # initializes the background subtractor MOG2
+    thisRunCorrectedImages = []
+    for frameNumber in range(len(runImages[runNumber])): # iterates through every index in the range of the number of frames in the run
+        thisFrameImage = thisRunImages[frameNumber] # gets the current frame
+        thisFrameCorrectedImage = fgbg.apply(thisFrameImage) # applies the background subtractor to the current frame
+        thisRunCorrectedImages.append(thisFrameCorrectedImage)
+
+        # completely asthetic video stuff starts here #
+        if writeVid:
+            thisFrameImage = imgNumStamps(addLeadingZeros(2,runNumber+1)+'-'+addLeadingZeros(3,frameNumber),0,0,thisFrameImage)
+            thisFrameImage = imgNumStamps(thisRunName,len(thisFrameImage)-15,0,thisFrameImage)
+            thisFrameImage = imgNumStamps(addLeadingZeros(10,thisRunTimesteps[frameNumber]),len(thisFrameImage)-8,0,thisFrameImage)
+            thisFrameComboImage = np.concatenate((thisFrameImage,thisFrameCorrectedImage),axis=1)
+            images.append(thisFrameComboImage)
+        
         # thisRunTrifoldImages.append(thisFrameTrifoldImage)
-        trifoldImages.append(thisFrameTrifoldImage)
-writeVid=True
+        # above line is left in to allow for the creation of multiple separate videos separated by run
+    
+
 if writeVid:
-    writeAviVideo('control 08 - 8 bit - ALL',15,trifoldImages[0:],True)
+    writeAviVideo('Cs-137 04 - 8 bit'+batchName[0:-1],20,images,True)
