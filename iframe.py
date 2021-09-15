@@ -45,10 +45,12 @@ def getBackground(images, startFrame, stopFrame): # returns a background by aver
         background += images[i]
     background = background/(stopFrame - startFrame)
     return background
-def backgroundCorrected(background, images, scale: bool): # subtracts background from images, if scale all images are shifted so that 0-max(background) => 0 while 255 => 255
+def backgroundCorrected(background, images, scale: bool, scale2: bool): # subtracts background from images, if scale all images are shifted so that 0-max(background) => 0 while 255 => 255
     images = images - background
     if scale:
         background_max = np.max(background)
+        if scale2:
+            background_max = 255
         images += background_max
         images *= 255/(255+background_max)
     images = np.where(images < 0, 0, images)
@@ -88,21 +90,34 @@ def addLeadingZeros(finalLength, currentText): # adds leading zeros to match the
     return currentText
 groupName, runNames, runTimesteps, runImages = getRunsFromGroup(data_folder_path)
 trifoldImages = []
-for runNumber in range(len(runNames)):
+runsOfInterest = range(len(runNames))
+for runNumber in runsOfInterest:
     thisRunName = runNames[runNumber]
     thisRunTimesteps = runTimesteps[runNumber]
     thisRunImages = runImages[runNumber]
-    thisRunBackground = getBackground(thisRunImages,1,51)
-    thisRunCorrectedImages = backgroundCorrected(thisRunBackground,thisRunImages,scale = False)
-    thisRunCorrectedScaledImages = backgroundCorrected(thisRunBackground,thisRunImages,scale = True)
-    thisRunTrifoldImages = []
+    # thisRunBackground = getBackground(thisRunImages,1,51)
+    # thisRunCorrectedImages = backgroundCorrected(thisRunBackground,thisRunImages,scale = False, scale2 = False)
+    # thisRunCorrectedScaledImages = backgroundCorrected(thisRunBackground,thisRunImages,scale = True, scale2 = False)
+    # thisRunCorrectedScaledImages2 = backgroundCorrected(thisRunBackground,thisRunImages,scale = True, scale2 = True)
+    # thisRunTrifoldImages = []
     for frameNumber in range(len(runImages[runNumber])):
-        thisFrameTrifoldImage = np.concatenate((thisRunImages[frameNumber],thisRunCorrectedImages[frameNumber],thisRunCorrectedScaledImages[frameNumber]),axis=1)
-        thisFrameTrifoldImage = imgNumStamps(addLeadingZeros(2,runNumber+1)+'-'+addLeadingZeros(3,frameNumber),0,0,thisFrameTrifoldImage)
-        thisFrameTrifoldImage = imgNumStamps(thisRunName,len(thisFrameTrifoldImage)-15,0,thisFrameTrifoldImage)
-        thisFrameTrifoldImage = imgNumStamps(addLeadingZeros(10,thisRunTimesteps[frameNumber]),len(thisFrameTrifoldImage)-8,0,thisFrameTrifoldImage)
-        thisRunTrifoldImages.append(thisFrameTrifoldImage)
+        thisFrameTrifoldImage = thisRunImages[frameNumber]
+        # thisFrameTrifoldImage1 = np.concatenate((thisRunImages[frameNumber],thisRunCorrectedImages[frameNumber]),axis=1)
+        # thisFrameTrifoldImage2 = np.concatenate((thisRunCorrectedScaledImages[frameNumber],thisRunCorrectedScaledImages2[frameNumber]),axis=1)
+        # thisFrameTrifoldImage = np.concatenate((thisFrameTrifoldImage1,thisFrameTrifoldImage2),axis=0)
+        # thisFrameDeltaImage = (np.array(thisRunImages[frameNumber],dtype=np.float32) - np.array(thisRunImages[frameNumber-4],dtype=np.float32) + 255)//2
+        # thisFrameDeltaImage = ((4*np.array(thisRunImages[frameNumber],dtype=np.float32) - 1*np.array(thisRunImages[frameNumber-1],dtype=np.float32) - 1*np.array(thisRunImages[frameNumber-2],dtype=np.float32) - 1*np.array(thisRunImages[frameNumber-3],dtype=np.float32) - 1*np.array(thisRunImages[frameNumber-4],dtype=np.float32))/4 + 255)//2
+        # thisFrameDeltaImage += 255
+        # thisFrameDeltaImage = np.divide(thisFrameDeltaImage,2)
+        # thisFrameTrifoldImage = np.concatenate((thisRunImages[frameNumber],thisFrameDeltaImage),axis=1)
+        # thisFrameTrifoldImage = imgNumStamps(addLeadingZeros(2,runNumber+1)+'-'+addLeadingZeros(3,frameNumber),0,0,thisFrameTrifoldImage)
+        # thisFrameTrifoldImage = imgNumStamps(thisRunName,len(thisFrameTrifoldImage)-15,0,thisFrameTrifoldImage)
+        # thisFrameTrifoldImage = imgNumStamps(addLeadingZeros(10,thisRunTimesteps[frameNumber]),len(thisFrameTrifoldImage)-8,0,thisFrameTrifoldImage)
+        # for i in range(0,255,5):
+        #     for j in range(5):
+        #         thisFrameTrifoldImage[int(len(thisFrameTrifoldImage)/2-i/5)][j] = 255-(i+j)
+        # thisRunTrifoldImages.append(thisFrameTrifoldImage)
         trifoldImages.append(thisFrameTrifoldImage)
 writeVid=True
 if writeVid:
-    writeAviVideo('control 08 - 8 bit',60,trifoldImages[0:],True)
+    writeAviVideo('control 08 - 8 bit - ALL',15,trifoldImages[0:],True)

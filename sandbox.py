@@ -38,37 +38,41 @@ data_folder_path = data_repo_path + os.path.sep + data_folder_name
 # grid/=np.max(grid)
 # grid*=255
 # print(grid)
-run = '3.603138210'
-filename = glob.glob(data_folder_path + os.path.sep +'*.tif')
-print(os.path.split(os.path.split(filename[4])[0])[1])
-groupPath, tifName = os.path.split(filename[4])
-groupName = os.path
-runName, timestamp = tifName.replace('.tif','').split('_')
-# print(runName)
-# print(timestamp)
+# run = '3.603138210'
+# filename = glob.glob(data_folder_path + os.path.sep +'*.tif')
+# print(os.path.split(os.path.split(filename[4])[0])[1])
+# groupPath, tifName = os.path.split(filename[4])
+# groupName = os.path
+# runName, timestamp = tifName.replace('.tif','').split('_')
+# # print(runName)
+# # print(timestamp)
 
-def runsFromGroup(groupFolder): # str - name of group, str array - names of runs, str 2d array - timestamps in runs, str 2d array - filenames in runs
-    filename_RFG = glob.glob(groupFolder + os.path.sep + '*.tif')
-    groupName_RFG = os.path.basename(groupFolder)
-    runNames_RFG = []
-    runFilenames_RFG = []
-    runTimestamps_RFG = []
-    currRunName_RFG = ''
-    for i in filename_RFG:
-        tif_RFG = os.path.basename(i)
-        runName_RFG, timestamp_RFG = tif_RFG.replace('.tif','').replace('.','').split('_')
-        if runName_RFG != currRunName_RFG:
-            currRunName_RFG = runName_RFG
-            runNames_RFG.append(runName_RFG)
-            runTimestamps_RFG.append([])
-            runFilenames_RFG.append([])
-        runTimestamps_RFG[-1].append(timestamp_RFG)
-        runFilenames_RFG[-1].append(i)
-    return groupName_RFG, runNames_RFG, runTimestamps_RFG, runFilenames_RFG
+# def runsFromGroup(groupFolder): # str - name of group, str array - names of runs, str 2d array - timestamps in runs, str 2d array - filenames in runs
+#     filename_RFG = glob.glob(groupFolder + os.path.sep + '*.tif')
+#     groupName_RFG = os.path.basename(groupFolder)
+#     runNames_RFG = []
+#     runFilenames_RFG = []
+#     runTimestamps_RFG = []
+#     currRunName_RFG = ''
+#     for i in filename_RFG:
+#         tif_RFG = os.path.basename(i)
+#         runName_RFG, timestamp_RFG = tif_RFG.replace('.tif','').replace('.','').split('_')
+#         if runName_RFG != currRunName_RFG:
+#             currRunName_RFG = runName_RFG
+#             runNames_RFG.append(runName_RFG)
+#             runTimestamps_RFG.append([])
+#             runFilenames_RFG.append([])
+#         runTimestamps_RFG[-1].append(timestamp_RFG)
+#         runFilenames_RFG[-1].append(i)
+#     return groupName_RFG, runNames_RFG, runTimestamps_RFG, runFilenames_RFG
 
-group, runNames, runTimestamps, runFilenames = runsFromGroup(groupPath)
-print(group)
-print(len(runNames))
-for i in runTimestamps:
-    print(len(i))
-print(runFilenames[2][4])
+# group, runNames, runTimestamps, runFilenames = runsFromGroup(groupPath)
+# print(group)
+# print(len(runNames))
+# for i in runTimestamps:
+#     print(len(i))
+# print(runFilenames[2][4])
+
+a = [[1,2,3],[4,5,6]]
+b = a
+print(a[0][0])
