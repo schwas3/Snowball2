@@ -125,9 +125,13 @@ for runNumber in runsOfInterest:
         # thisFrameDeltaImage += 255
         # thisFrameDeltaImage = np.divide(thisFrameDeltaImage,2)
         # thisFrameTrifoldImage = np.concatenate((thisRunImages[frameNumber],thisFrameDeltaImage),axis=1)
-        thisFrameTrifoldImage = imgNumStamps(addLeadingZeros(2,runNumber+1)+'-'+addLeadingZeros(3,frameNumber),0,0,thisFrameTrifoldImage)
-        thisFrameTrifoldImage = imgNumStamps(thisRunName,len(thisFrameTrifoldImage)-15,0,thisFrameTrifoldImage)
-        thisFrameTrifoldImage = imgNumStamps(addLeadingZeros(10,thisRunTimesteps[frameNumber]),len(thisFrameTrifoldImage)-8,0,thisFrameTrifoldImage)
+        cv2.rectangle(thisFrameTrifoldImage, (10, 2), (100,20), (255,255,255), -1)
+        cv2.putText(thisFrameTrifoldImage, addLeadingZeros(2,runNumber+1)+'-'+addLeadingZeros(3,frameNumber), (15, 15),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.5 , (0,0,0))
+        # thisFrameTrifoldImage = imgNumStamps(addLeadingZeros(2,runNumber+1)+'-'+addLeadingZeros(3,frameNumber),0,0,thisFrameTrifoldImage)
+        # thisFrameTrifoldImage = imgNumStamps(thisRunName,len(thisFrameTrifoldImage)-15,0,thisFrameTrifoldImage)
+        # thisFrameTrifoldImage = imgNumStamps(addLeadingZeros(10,thisRunTimesteps[frameNumber]),len(thisFrameTrifoldImage)-8,0,thisFrameTrifoldImage)
+
         # for i in range(0,255,5):
         #     for j in range(5):
         #         thisFrameTrifoldImage[int(len(thisFrameTrifoldImage)/2-i/5)][j] = 255-(i+j)
