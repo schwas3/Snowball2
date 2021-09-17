@@ -10,7 +10,7 @@ from PIL import Image
 import glob
 from os import read, startfile
 
-groupName = 'AmBe C0 - 8 bit' # the short name of the folder containing images (tif files)
+groupName = 'control 08 - 8 bit' # the short name of the folder containing images (tif files)
 
 # WIP
 this_file_path = os.path.realpath(__file__) # gets the path to this file including the file
@@ -82,7 +82,7 @@ if allRunsInFolder:
     runsOfInterest = range(len(runNames))
     batchName = 'Alll'
 else:
-    runsOfInterest = [4,20,23,29,31,34] # MUST be an array of run indices (0-indexed) #range(len(runNames)) to read all files in folder
+    runsOfInterest = [36] # MUST be an array of run indices (0-indexed) #range(len(runNames)) to read all files in folder
     batchName = ''
     for i in range(len(runsOfInterest)):
         batchName += str(runsOfInterest[i])+','
@@ -98,12 +98,20 @@ for runNumber in runsOfInterest: # iterates over all runNumber in runsOfInterest
     thisRunName = runNames[runNumber] # pulls the name of the run (i.e. the prefix)
     thisRunTimesteps = runTimesteps[runNumber] # pulls all the timesteps for the current run
     thisRunImages = runImages[runNumber] # pulls all the frames in the current run
-    fgbg = cv2.createBackgroundSubtractorMOG2(history = 60,varThreshold = 16, detectShadows = False) # initializes the background subtractor MOG2
+    fgbg = cv2.createBackgroundSubtractorMOG2(history = 60,varThreshold = 24, detectShadows = False) # initializes the background subtractor MOG2
     thisRunCorrectedImages = []
+    print(runNumber)
     for frameNumber in range(len(runImages[runNumber])): # iterates through every index in the range of the number of frames in the run
         thisFrameImage = thisRunImages[frameNumber] # gets the current frame
-        thisFrameCorrectedImage = fgbg.apply(thisFrameImage) # applies the background subtractor to the current frame
-        thisRunCorrectedImages.append(thisFrameCorrectedImage)
+        thisFrameImage1=cv2.GaussianBlur(thisFrameImage,(45,45),cv2.BORDER_DEFAULT)
+        thisFrameImage3=fgbg.apply(thisFrameImage1)
+        thisFrameImage2=fgbg.apply(thisFrameImage)
+        # thisFrameImage=fgbg.apply(thisFrameImage)
+        # thisFrameImage3=cv2.GaussianBlur(thisFrameImage,(37,37),cv2.BORDER_DEFAULT)
+        # thisFrameImage4=fgbg.apply(thisFrameImage2)
+        # thisFrameCorrectedImage = fgbg.apply(thisFrameImage) # applies the background subtractor to the current frame
+        # thisFrameCorrectedImage2 = fgbg.apply(thisFrameImage2) # applies the background subtractor to the current frame
+        # thisRunCorrectedImages.append(thisFrameCorrectedImage)
 
         # --- completely asthetic video stuff starts here --- #
         if writeVid:
@@ -113,11 +121,16 @@ for runNumber in runsOfInterest: # iterates over all runNumber in runsOfInterest
             thisFrameImage = imgNumStamps(addLeadingZeros(2,runNumber+1)+'-'+addLeadingZeros(3,frameNumber),0,0,thisFrameImage)
         # thisFrameTrifoldImage = imgNumStamps(thisRunName,len(thisFrameTrifoldImage)-15,0,thisFrameTrifoldImage)
         # thisFrameTrifoldImage = imgNumStamps(addLeadingZeros(10,thisRunTimesteps[frameNumber]),len(thisFrameTrifoldImage)-8,0,thisFrameTrifoldImage)
-            thisFrameComboImage = np.concatenate((thisFrameImage,thisFrameCorrectedImage),axis=1)
+            thisFrameComboImage1 = np.concatenate((thisFrameImage,thisFrameImage1),axis=1)
+            thisFrameComboImage2 = np.concatenate((thisFrameImage2,thisFrameImage3),axis=1)
+            thisFrameComboImage = np.concatenate((thisFrameComboImage1,thisFrameComboImage2),axis=0)
+            # thisFrameComboImage2 = np.concatenate((thisFrameImage3,thisFrameImage4),axis=1)
+            # thisFrameComboImage = np.concatenate((thisFrameComboImage1,thisFrameComboImage2),axis=0)
+            # thisFrameComboImage = thisFrameComboImage1
             images.append(thisFrameComboImage)
         
         # thisRunTrifoldImages.append(thisFrameTrifoldImage)
         # above line is left in to allow for the creation of multiple separate videos separated by run
         # --- completely asthetic video stuff ends here --- #
 if writeVid:
-    writeAviVideo(videoName = groupName+' - '+batchName[0:-1],frameRate = 2,images = images,openVideo = True)
+    writeAviVideo(videoName = groupName+' - '+batchName[0:-1],frameRate = 20,images = images,openVideo = True)

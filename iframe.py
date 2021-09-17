@@ -92,17 +92,20 @@ for groupName in groupNames:
     answerKeyFile = open(answerKeyPath,'r')
     answerKeyLines = answerKeyFile.readlines()
     correctedImages = [] # initializes the array used to store corrected images used for detection
+    print(groupName)
     for runNumber in runsOfInterest: # iterates over all runNumber in runsOfInterest (note: runNumber is 0-indexed)
+        print(runNumber)
         thisRunName = runNames[runNumber] # pulls the name of the run (i.e. the prefix)
         thisRunTimesteps = runTimesteps[runNumber] # pulls all the timesteps for the current run
         thisRunImages = runImages[runNumber] # pulls all the frames in the current run
-        fgbg = cv2.createBackgroundSubtractorMOG2(history = 60,varThreshold = 32, detectShadows = False) # initializes the background subtractor MOG2
+        fgbg = cv2.createBackgroundSubtractorMOG2(history = 60,varThreshold = 24, detectShadows = False) # initializes the background subtractor MOG2
         thisRunCorrectedImages = []
         detectedFrame = 0
         frameVal = []
         thisFrameIsValid = []
         for frameNumber in range(len(runImages[runNumber])): # iterates through every index in the range of the number of frames in the run
             thisFrameImage = thisRunImages[frameNumber] # gets the current frame
+            thisFrameImage=cv2.GaussianBlur(thisFrameImage,(45,45),cv2.BORDER_DEFAULT)
             thisFrameCorrectedImage = fgbg.apply(thisFrameImage) # applies the background subtractor to the current frame
             thisRunCorrectedImages.append(thisFrameCorrectedImage)
             frameVal.append(np.sum(thisFrameCorrectedImage))
@@ -110,17 +113,17 @@ for groupName in groupNames:
             detected = 0
             if detectedFrame == 0:
                 detectedFrame = frameNumber
-                for i in range(np.min([10,200-frameNumber])):
+                for i in range(np.min([10,len(runImages[runNumber])-1-frameNumber])):
                     if frameVal[frameNumber+i] >= (i+1)/2*255:
                         detected += 1
                     else:
-                        detected -= 2
-                        if detected < -1:
+                        detected -= 1.5
+                        if detected < -0.5:
                             detectedFrame = 0
             imgs = []
         detectedFrames.append(str(detectedFrame)+' - '+answerKeyLines[runNumber])
-    txtName += groupName+','
-txtName = txtName[:-1]+' - Results detected over 2 pixels (joint)'
+    # txtName += groupName+','
+txtName = 'Batch - Results detected over 2 pixels (gaussian after mog2 vT = 24 blur 45,45)'
 txtFile = open(this_repo_path+os.path.sep+txtName,'w')
 fileContents = "".join(detectedFrames)
 txtFile.write(fileContents)
