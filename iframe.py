@@ -10,8 +10,11 @@ from PIL import Image
 import glob
 from os import read, startfile
 import csv
+blur = 3
+thresh = 120
+hist = 60
 detectedFrames = []
-groupNames = ['control 08 - 8 bit','control 09 - 8 bit','cs-137 05 - 8 bit','control 05 - 8 bit','AmBe C0 - 8 bit','Cs-137 04 - 8 bit','fiesta front w Be 10 - 8 bit','control 02 - 8 bit','AmBe blue 09 - 8 bit'] # the short name of the folder containing images (tif files)
+groupNames = ['control 08 - 8 bit','fiesta front w Be 10 - 8 bit','cs-137 05 - 8 bit'] # the short name of the folder containing images (tif files)
 txtName = ''
 for groupName in groupNames:
     # WIP
@@ -98,14 +101,14 @@ for groupName in groupNames:
         thisRunName = runNames[runNumber] # pulls the name of the run (i.e. the prefix)
         thisRunTimesteps = runTimesteps[runNumber] # pulls all the timesteps for the current run
         thisRunImages = runImages[runNumber] # pulls all the frames in the current run
-        fgbg = cv2.createBackgroundSubtractorMOG2(history = 60,varThreshold = 24, detectShadows = False) # initializes the background subtractor MOG2
+        fgbg = cv2.createBackgroundSubtractorMOG2(history = hist,varThreshold = thresh, detectShadows = False) # initializes the background subtractor MOG2
         thisRunCorrectedImages = []
         detectedFrame = 0
         frameVal = []
         thisFrameIsValid = []
         for frameNumber in range(len(runImages[runNumber])): # iterates through every index in the range of the number of frames in the run
             thisFrameImage = thisRunImages[frameNumber] # gets the current frame
-            thisFrameImage=cv2.GaussianBlur(thisFrameImage,(45,45),cv2.BORDER_DEFAULT)
+            thisFrameImage=cv2.GaussianBlur(thisFrameImage,(blur,blur),cv2.BORDER_DEFAULT)
             thisFrameCorrectedImage = fgbg.apply(thisFrameImage) # applies the background subtractor to the current frame
             thisRunCorrectedImages.append(thisFrameCorrectedImage)
             frameVal.append(np.sum(thisFrameCorrectedImage))
@@ -118,12 +121,12 @@ for groupName in groupNames:
                         detected += 1
                     else:
                         detected -= 1.5
-                        if detected < -0.5:
+                        if detected <= -0.5:
                             detectedFrame = 0
             imgs = []
         detectedFrames.append(str(detectedFrame)+' - '+answerKeyLines[runNumber])
     # txtName += groupName+','
-txtName = 'Batch - Results detected over 2 pixels (gaussian after mog2 vT = 24 blur 45,45)'
+txtName = 'Batch - Results' + ' - hist='+str(hist)+'vT='+str(thresh)+'blur='+str(blur)
 txtFile = open(this_repo_path+os.path.sep+txtName,'w')
 fileContents = "".join(detectedFrames)
 txtFile.write(fileContents)

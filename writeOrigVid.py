@@ -10,7 +10,7 @@ from PIL import Image
 import glob
 from os import read, startfile
 
-groupName = 'control 08 - 8 bit' # the short name of the folder containing images (tif files)
+groupName = 'fiesta front w Be 10 - 8 bit' # the short name of the folder containing images (tif files)
 
 # WIP
 this_file_path = os.path.realpath(__file__) # gets the path to this file including the file
@@ -77,12 +77,12 @@ def addLeadingZeros(finalLength, currentText): # adds leading zeros to match the
 groupName, runNames, runTimesteps, runImages = getRunsFromGroup(data_folder_path) # calls getRunsFromGroup data_folder_path MUST BE A COMPLETE PATH, ALL 
 
 # --- These should be configured --- #
-allRunsInFolder = True
+allRunsInFolder = False
 if allRunsInFolder:
     runsOfInterest = range(len(runNames))
     batchName = 'Alll'
 else:
-    runsOfInterest = [36] # MUST be an array of run indices (0-indexed) #range(len(runNames)) to read all files in folder
+    runsOfInterest = [1] # MUST be an array of run indices (0-indexed) #range(len(runNames)) to read all files in folder
     batchName = ''
     for i in range(len(runsOfInterest)):
         batchName += str(runsOfInterest[i])+','
@@ -94,18 +94,24 @@ batchName = ''
 for i in range(len(runsOfInterest)):
     batchName += str(1+runsOfInterest[i]) + ','
 correctedImages = [] # initializes the array used to store corrected images used for detection
+blur = [1,3,5,7,9,11,13,15,17]
+thresh = range(40,155,10)
 for runNumber in runsOfInterest: # iterates over all runNumber in runsOfInterest (note: runNumber is 0-indexed)
     thisRunName = runNames[runNumber] # pulls the name of the run (i.e. the prefix)
     thisRunTimesteps = runTimesteps[runNumber] # pulls all the timesteps for the current run
     thisRunImages = runImages[runNumber] # pulls all the frames in the current run
-    fgbg = cv2.createBackgroundSubtractorMOG2(history = 60,varThreshold = 24, detectShadows = False) # initializes the background subtractor MOG2
+    fgbg = cv2.createBackgroundSubtractorMOG2(history = 60,varThreshold = 120, detectShadows = False) # initializes the background subtractor MOG2
     thisRunCorrectedImages = []
     print(runNumber)
     for frameNumber in range(len(runImages[runNumber])): # iterates through every index in the range of the number of frames in the run
-        thisFrameImage = thisRunImages[frameNumber] # gets the current frame
-        thisFrameImage1=cv2.GaussianBlur(thisFrameImage,(45,45),cv2.BORDER_DEFAULT)
-        thisFrameImage3=fgbg.apply(thisFrameImage1)
-        thisFrameImage2=fgbg.apply(thisFrameImage)
+        thisFrame = []
+        thisFrame.append([thisRunImages[frameNumber]]) # gets the current frame
+        for i in range(8):
+            thisFrame.append(thisFrame[0])
+            # thisFrame.append([cv2.GaussianBlur(thisFrame[0][0],(blur[i],blur[i]),cv2.BORDER_DEFAULT)])
+        for i in range(9):
+            for j in range(8):
+                thisFrame[i].append(fgbg[j].apply(thisFrame[i][0],learningRate = (j-1)/6))
         # thisFrameImage=fgbg.apply(thisFrameImage)
         # thisFrameImage3=cv2.GaussianBlur(thisFrameImage,(37,37),cv2.BORDER_DEFAULT)
         # thisFrameImage4=fgbg.apply(thisFrameImage2)
@@ -118,12 +124,17 @@ for runNumber in runsOfInterest: # iterates over all runNumber in runsOfInterest
         #     cv2.rectangle(thisFrameImage, (0, 0), (30,7), 255,-1)
         #     cv2.putText(thisFrameImage, str(addLeadingZeros(2,runNumber+1)+'-'+addLeadingZeros(3,frameNumber)), (0, 6),
         #     cv2.FONT_HERSHEY_PLAIN, 0.5 , 0,bottomLeftOrigin=False)
-            thisFrameImage = imgNumStamps(addLeadingZeros(2,runNumber+1)+'-'+addLeadingZeros(3,frameNumber),0,0,thisFrameImage)
         # thisFrameTrifoldImage = imgNumStamps(thisRunName,len(thisFrameTrifoldImage)-15,0,thisFrameTrifoldImage)
         # thisFrameTrifoldImage = imgNumStamps(addLeadingZeros(10,thisRunTimesteps[frameNumber]),len(thisFrameTrifoldImage)-8,0,thisFrameTrifoldImage)
-            thisFrameComboImage1 = np.concatenate((thisFrameImage,thisFrameImage1),axis=1)
-            thisFrameComboImage2 = np.concatenate((thisFrameImage2,thisFrameImage3),axis=1)
-            thisFrameComboImage = np.concatenate((thisFrameComboImage1,thisFrameComboImage2),axis=0)
+            for i in range(9):
+                thisFrameRowImage = thisFrame[i][0]
+                for j in range(1,9):
+                    thisFrameRowImage = np.concatenate((thisFrameRowImage,thisFrame[i][j]),axis=1)
+                if i == 0:
+                    thisFrameComboImage = thisFrameRowImage
+                else:
+                    thisFrameComboImage = np.concatenate((thisFrameComboImage,thisFrameRowImage),axis=0)
+            thisFrameComboImage = imgNumStamps(addLeadingZeros(2,runNumber+1)+'-'+addLeadingZeros(3,frameNumber),0,0,thisFrameComboImage)
             # thisFrameComboImage2 = np.concatenate((thisFrameImage3,thisFrameImage4),axis=1)
             # thisFrameComboImage = np.concatenate((thisFrameComboImage1,thisFrameComboImage2),axis=0)
             # thisFrameComboImage = thisFrameComboImage1
@@ -133,4 +144,4 @@ for runNumber in runsOfInterest: # iterates over all runNumber in runsOfInterest
         # above line is left in to allow for the creation of multiple separate videos separated by run
         # --- completely asthetic video stuff ends here --- #
 if writeVid:
-    writeAviVideo(videoName = groupName+' - '+batchName[0:-1],frameRate = 20,images = images,openVideo = True)
+    writeAviVideo(videoName = groupName+' - '+batchName[0:-1],frameRate = 1,images = images,openVideo = True)
