@@ -9,76 +9,78 @@ import cv2
 from PIL import Image
 import glob
 from os import read, startfile
+from os.path import exists
 import csv
-blur = 3
-thresh = 120
-hist = 60
+blur = 5
+blurBig = 15
+thresh = 10
+threshBig = 150
+hist = 100
+histBig = 50
 detectedFrames = []
-groupNames = ['control 08 - 8 bit','fiesta front w Be 10 - 8 bit','cs-137 05 - 8 bit'] # the short name of the folder containing images (tif files)
+groupNames = ['control 06 - 8 bit','control 07 - 8 bit','control 10 - 8 bit','AmBe 01 - 8 bit','cs137 06 - 8 bit'] # the short name of the folder containing images (tif files)
 txtName = ''
+this_file_path = os.path.realpath(__file__) # gets the path to this file including the file
+this_repo_path, this_file_name = os.path.split(this_file_path) # gets the path to the repository containing this file and the file name
+github_path, this_repo_name = os.path.split(this_repo_path) # gets the users github folder location and the repo name
+data_repo_name = "Snowball3"
+data_repo_path = github_path + os.path.sep + data_repo_name
+def getRunsFromGroup(groupFolder): # str - name of group, str array - names of runs, str 2d array - timestamps in runs, str 2d array - filenames in runs
+    filename_RFG = glob.glob(groupFolder + os.path.sep + '*.tif')
+    groupName_RFG = os.path.basename(groupFolder)
+    runNames_RFG = []
+    runImages_RFG = []
+    runTimestamps_RFG = []
+    currRunName_RFG = ''
+    for i in filename_RFG:
+        tif_RFG = os.path.basename(i)
+        runName_RFG, timestamp_RFG = tif_RFG.replace('.tif','').replace('.','').split('_')
+        if runName_RFG != currRunName_RFG:
+            currRunName_RFG = runName_RFG
+            runNames_RFG.append(runName_RFG)
+            runTimestamps_RFG.append([])
+            runImages_RFG.append([])
+        runTimestamps_RFG[-1].append(timestamp_RFG)
+        runImages_RFG[-1].append(np.array(Image.open(i)))
+    return groupName_RFG, runNames_RFG, runTimestamps_RFG, runImages_RFG
+def imgNumStamps(frameNum, loc1, loc2, origGrid): # this def includes a frame stamp at [loc1][loc2] on origGrid with frameNum works with '-' character as well
+    frameNums = []
+    frameNum = str(frameNum)
+    for i in range(len(frameNum)):
+        if frameNum[i] == '-':
+            frameNums.append(-1)
+        else:
+            frameNums.append(frameNum[i])
+    numForms = ['111101101101111','010010010010010','111001111100111','111001111001111','101101111001001','111100111001111','111100111101111','111001001001001','111101111101111','111101111001111','000000111000000']
+    grid = np.zeros((7,1+4*len(frameNums)),dtype=int)
+    for i in range(len(frameNums)):
+        for j in range(5):
+            for k in range(3):
+                grid[1+j][1+4*i+k] = numForms[int(frameNums[i])][3*j+k]    
+    for i in range(7):
+        for j in range(1+4*len(frameNums)):
+            origGrid[loc1+i][loc2+j]=255*grid[i][j]
+    return origGrid
+def writeAviVideo(videoName, frameRate, images, openVideo: bool): # creates a video with videoname, frame_rate, using "images", and opens the video based on a boolean
+    images = np.array(images).astype(np.uint8)
+    height, width = images[0].shape
+    size = (width,height)
+    out = cv2.VideoWriter(videoName+'.avi',cv2.VideoWriter_fourcc(*'DIVX'), frameRate, size, isColor=0) # isColor = 0 can be replaced by changing line (this line + 2 (or 3) to out.write(cv2.merge([imgs[i],imgs[i],imgs[i]]))
+    for i in range(len(images)):
+        out.write(images[i])
+    out.release()
+    if openVideo:
+        startfile(this_repo_path+os.path.sep+videoName+".avi")
+def addLeadingZeros(finalLength, currentText): # adds leading zeros to match the expected length of a number/string format
+    currentText = str(currentText)
+    while len(currentText) < finalLength:
+        currentText = '0' + currentText
+    return currentText
 for groupName in groupNames:
-    # WIP
-    this_file_path = os.path.realpath(__file__) # gets the path to this file including the file
-    this_repo_path, this_file_name = os.path.split(this_file_path) # gets the path to the repository containing this file and the file name
-    github_path, this_repo_name = os.path.split(this_repo_path) # gets the users github folder location and the repo name
     ## ----- ENTER THE DATA FILE LOCATION INFORMATION HERE ----- ##
-    data_repo_name = "Snowball3"
-    data_repo_path = github_path + os.path.sep + data_repo_name
     data_folder_name = 'SNOWBALL CROPPED IMAGES' + os.path.sep + groupName
     data_folder_path = data_repo_path + os.path.sep + data_folder_name # THIS LINE MUST BE CORRECT EVERYTHING ELSE IS NOT ESSENTIAL
     # the above line must include the path to the folder containing runs (i.e. 'PATH/control 08 - 8 bit')
-
-    def getRunsFromGroup(groupFolder): # str - name of group, str array - names of runs, str 2d array - timestamps in runs, str 2d array - filenames in runs
-        filename_RFG = glob.glob(groupFolder + os.path.sep + '*.tif')
-        groupName_RFG = os.path.basename(groupFolder)
-        runNames_RFG = []
-        runImages_RFG = []
-        runTimestamps_RFG = []
-        currRunName_RFG = ''
-        for i in filename_RFG:
-            tif_RFG = os.path.basename(i)
-            runName_RFG, timestamp_RFG = tif_RFG.replace('.tif','').replace('.','').split('_')
-            if runName_RFG != currRunName_RFG:
-                currRunName_RFG = runName_RFG
-                runNames_RFG.append(runName_RFG)
-                runTimestamps_RFG.append([])
-                runImages_RFG.append([])
-            runTimestamps_RFG[-1].append(timestamp_RFG)
-            runImages_RFG[-1].append(np.array(Image.open(i)))
-        return groupName_RFG, runNames_RFG, runTimestamps_RFG, runImages_RFG
-    def imgNumStamps(frameNum, loc1, loc2, origGrid): # this def includes a frame stamp at [loc1][loc2] on origGrid with frameNum works with '-' character as well
-        frameNums = []
-        frameNum = str(frameNum)
-        for i in range(len(frameNum)):
-            if frameNum[i] == '-':
-                frameNums.append(-1)
-            else:
-                frameNums.append(frameNum[i])
-        numForms = ['111101101101111','010010010010010','111001111100111','111001111001111','101101111001001','111100111001111','111100111101111','111001001001001','111101111101111','111101111001111','000000111000000']
-        grid = np.zeros((7,1+4*len(frameNums)),dtype=int)
-        for i in range(len(frameNums)):
-            for j in range(5):
-                for k in range(3):
-                    grid[1+j][1+4*i+k] = numForms[int(frameNums[i])][3*j+k]    
-        for i in range(7):
-            for j in range(1+4*len(frameNums)):
-                origGrid[loc1+i][loc2+j]=255*grid[i][j]
-        return origGrid
-    def writeAviVideo(videoName, frameRate, images, openVideo: bool): # creates a video with videoname, frame_rate, using "images", and opens the video based on a boolean
-        images = np.array(images).astype(np.uint8)
-        height, width = images[0].shape
-        size = (width,height)
-        out = cv2.VideoWriter(videoName+'.avi',cv2.VideoWriter_fourcc(*'DIVX'), frameRate, size, isColor=0) # isColor = 0 can be replaced by changing line (this line + 2 (or 3) to out.write(cv2.merge([imgs[i],imgs[i],imgs[i]]))
-        for i in range(len(images)):
-            out.write(images[i])
-        out.release()
-        if openVideo:
-            startfile(this_repo_path+os.path.sep+videoName+".avi")
-    def addLeadingZeros(finalLength, currentText): # adds leading zeros to match the expected length of a number/string format
-        currentText = str(currentText)
-        while len(currentText) < finalLength:
-            currentText = '0' + currentText
-        return currentText
     groupName, runNames, runTimesteps, runImages = getRunsFromGroup(data_folder_path) # calls getRunsFromGroup data_folder_path MUST BE A COMPLETE PATH, ALL 
     detectedFrames.append(groupName+'\n')
     allRunsInFolder = True
@@ -101,33 +103,55 @@ for groupName in groupNames:
         thisRunName = runNames[runNumber] # pulls the name of the run (i.e. the prefix)
         thisRunTimesteps = runTimesteps[runNumber] # pulls all the timesteps for the current run
         thisRunImages = runImages[runNumber] # pulls all the frames in the current run
-        fgbg = cv2.createBackgroundSubtractorMOG2(history = hist,varThreshold = thresh, detectShadows = False) # initializes the background subtractor MOG2
-        thisRunCorrectedImages = []
+        mid = int(np.mean(thisRunImages))
+        bottom = 2*mid-255
+        if bottom > 0:
+            thisRunImages = np.where(np.subtract(thisRunImages,bottom)<0, 0,np.multiply(np.subtract(thisRunImages,bottom),255/(255-bottom)))
+        fgbgForward = cv2.createBackgroundSubtractorMOG2(history = hist,varThreshold = thresh, detectShadows = False) # initializes the background subtractor MOG2
+        fgbgReverse = cv2.createBackgroundSubtractorMOG2(history = hist,varThreshold = thresh, detectShadows = False) # initializes the background subtractor MOG2
+        fgbgBig = cv2.createBackgroundSubtractorMOG2(history = histBig,varThreshold = threshBig, detectShadows = False) # initializes the background subtractor MOG2
         detectedFrame = 0
-        frameVal = []
-        thisFrameIsValid = []
-        for frameNumber in range(len(runImages[runNumber])): # iterates through every index in the range of the number of frames in the run
-            thisFrameImage = thisRunImages[frameNumber] # gets the current frame
-            thisFrameImage=cv2.GaussianBlur(thisFrameImage,(blur,blur),cv2.BORDER_DEFAULT)
-            thisFrameCorrectedImage = fgbg.apply(thisFrameImage) # applies the background subtractor to the current frame
-            thisRunCorrectedImages.append(thisFrameCorrectedImage)
-            frameVal.append(np.sum(thisFrameCorrectedImage))
-        for frameNumber in range(len(runImages[runNumber])):
-            detected = 0
-            if detectedFrame == 0:
-                detectedFrame = frameNumber
-                for i in range(np.min([10,len(runImages[runNumber])-1-frameNumber])):
-                    if frameVal[frameNumber+i] >= (i+1)/2*255:
-                        detected += 1
-                    else:
-                        detected -= 1.5
-                        if detected <= -0.5:
-                            detectedFrame = 0
-            imgs = []
+        blurredImages = []
+        forwardImages = []
+        reverseImages = []
+        bigImages = []
+        compositeImages = []
+        for i in range(len(thisRunImages)):
+            blurredImages.append([])
+            forwardImages.append([])
+            reverseImages.append([])
+            bigImages.append([])
+            compositeImages.append([])
+        for frameNumber in range(1,len(thisRunImages)+1): # iterates through every index in the range of the number of frames in the run
+            thisFrameImage = thisRunImages[frameNumber%len(thisRunImages)] # gets the current frame
+            blurredImages[frameNumber%len(thisRunImages)]=cv2.GaussianBlur(thisFrameImage,(blur,blur),cv2.BORDER_DEFAULT)
+            forwardImages[frameNumber%len(thisRunImages)]=fgbgForward.apply(blurredImages[frameNumber%len(thisRunImages)]) # applies the background subtractor to the current frame in forward
+            if frameNumber < 51:
+                bigImages[frameNumber%len(thisRunImages)]=fgbgBig.apply(cv2.GaussianBlur(thisFrameImage,(blurBig,blurBig),cv2.BORDER_DEFAULT))
+            else:
+                bigImages[frameNumber%len(thisRunImages)]=fgbgBig.apply(cv2.GaussianBlur(thisFrameImage,(blurBig,blurBig),cv2.BORDER_DEFAULT),learningRate=0)
+        for frameNumber in range(len(thisRunImages),0,-1): # iterates in reverse
+            reverseImages[frameNumber%len(thisRunImages)]=fgbgReverse.apply(np.array(blurredImages[frameNumber%len(thisRunImages)])) # applies the background subtractor to the current frame in reverse
+        compositeImages = np.multiply(np.divide(forwardImages,255),reverseImages)
+        ballParkFrame = 0
+        for frameNumber in range(50,len(thisRunImages)):
+            tempFrameNumber = frameNumber
+            frameIsValid = ballParkFrame == 0
+            for i in range(5):
+                if tempFrameNumber <= len(thisRunImages)+1 and np.sum(bigImages[tempFrameNumber%len(thisRunImages)]) == 0:
+                    frameIsValid = False
+                tempFrameNumber += 1
+            if frameIsValid:
+                ballParkFrame = frameNumber
+        detectedFrame = ballParkFrame
         detectedFrames.append(str(detectedFrame)+' - '+answerKeyLines[runNumber])
     # txtName += groupName+','
-txtName = 'Batch - Results' + ' - hist='+str(hist)+'vT='+str(thresh)+'blur='+str(blur)
-txtFile = open(this_repo_path+os.path.sep+txtName,'w')
+txtName = 'Batch - Results' + ' - hist='+str(hist)+',vT='+str(thresh)+',blur='+str(blur)+','
+txtPath = this_repo_path+os.path.sep+txtName
+suffix = 0
+while exists(txtPath+str(suffix)):
+    suffix += 1
+txtFile = open(txtPath+str(suffix),'w')
 fileContents = "".join(detectedFrames)
 txtFile.write(fileContents)
 txtFile.close()
