@@ -1,25 +1,16 @@
 Notes on which runs have problems in reported detected frame (if no notes then has not been inspected)
-AmBe 00 - 8 bit,ALL, IGNORE THIS FOLDER, MANY MISSING IMAGES
-AmBe B0 - 8 bit,4, CODE IS RIGHT
-AmBe B0 - 8 bit,16, CODE IS RIGHT
-AmBe B1 - 8 bit,3, *** DISREGARD ALL AmBe B1 ***
-AmBe B1 - 8 bit,4, *** DISREGARD ALL AmBe B1 ***
-AmBe B1 - 8 bit,8, *** DISREGARD ALL AmBe B1 ***
-AmBe B1 - 8 bit,12, *** DISREGARD ALL AmBe B1 ***
-AmBe B1 - 8 bit,14, *** DISREGARD ALL AmBe B1 ***
-AmBe B1 - 8 bit,17, *** DISREGARD ALL AmBe B1 ***
-AmBe C0 - 8 bit,23, this is far too low quality to reasonably be able to get correct - disregard
+AmBe 00 - 8 bit, IGNORE THIS ENTIRE FOLDER, MANY MISSING IMAGES
+AmBe B0 - 8 bit,4,16, CODE IS RIGHT
+AmBe B1 - 8 bit, IGNORE THIS ENTIRE FOLDER
+AmBe C0 - 8 bit,23, this is far too low quality to reasonably be able to get correct - IGNORE
 AmBe top A - 8 bit,25, CODE IS RIGHT
-control 01 - 8bit for sub,3 CODE IS RIGHT
-control 01 - 8bit for sub,17, check 14/15 visually? CODE IS RIGHT FOR ALL 3
-control 02 - 8 bit,5, quality too low - disregard
+control 01 - 8bit for sub,3,14,15,17, CODE IS RIGHT
+control 02 - 8 bit,5, quality too low - IGNORE
 control 06 - 8 bit,40, CODE IS RIGHT
-control 07 - 8 bit,12, check 30-50 visually? 12 - this is supposed to be 196, just resorting no detection to frame 200 will fix this. 30-50 are OK, normalization explains discrepancy between code and answer key
-control 09 - 8 bit,4, quality too low - disregard
-control 10 - 8 bit,6, THIS IS SIGNIFICANT? I DO NOT UNDERSTAND WHY THE CODE FAILS ON THIS EVENT - THERE IS HOWEVER SIGNIFICANT NOISE
-control B0 - 8 bit,10, IGNORE
-control B0 - 8 bit,19, check 21-26 visually? *** IGNORE THIS FOLDER COMPLETELY ***
-control B0 - 8 bit,27, IGNORE
+control 07 - 8 bit,12, check 30-50 visually? ALL OK NOW - CODE IS RIGHT
+control 09 - 8 bit,4, quality too low - IGNORE
+control 10 - 8 bit,6, NOISY; arguably the most reasonable event missed by code - IGNORE
+control B0 - 8 bit, IGNORE THIS ENTIRE FOLDER
 Control C0 - 8 bit,11, CODE IS RIGHT
 Cs-137 04 - 8 bit,49, CODE IS RIGHT
-cs137 06 - 8 bit,9, see control 07 - 12 comment
+cs137 06 - 8 bit,9, OK NOW - CODE IS RIGHT
