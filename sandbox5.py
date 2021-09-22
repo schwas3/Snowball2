@@ -159,7 +159,7 @@ def addLeadingZeros(finalLength, currText): # adds leading zeros to match the ex
     while len(currentText) < finalLength:
         currentText = '0' + currentText
     return currentText
-runNames = ['control 01 - 8 bit','control 07 - 8 bit','control B0 - 8 bit',] # the short name of the folder containing images (tif files)
+runNames = ['control 07 - 8 bit','control 10 - 8 bit','cs137 06 - 8 bit'] # the short name of the folder containing images (tif files)
 Images = [] # initializes the array used to store images to make a movie
 this_file_path = os.path.realpath(__file__) # gets the path to this file including the file
 this_repo_path, this_file_name = os.path.split(this_file_path) # gets the path to the repository containing this file and the file name
@@ -176,7 +176,7 @@ for runName in runNames:
     if allEventsInFolder:
         eventsOfInterest = range(len(eventPrefixes))
     else:
-        eventsOfInterest = [15,16,17,19,25,34,38,41] # 1-indexing
+        eventsOfInterest = [9] # 1-indexing
         for i in range(len(eventsOfInterest)):
             event = eventsOfInterest.pop(0)
             if event <= len(eventPrefixes):
@@ -194,9 +194,9 @@ for runName in runNames:
         thisEventImages = runEventImages[eventNumber]
         eventLength = len(thisEventImages)
         thisEventImages.append(thisEventImages.pop(0)) # the 0-th frame is removed and added to the end of the event images
-        # frames = []
-        # for frameNumber in range(eventLength):
-        #     frames.append(thisEventImages[frameNumber])
+        frames = []
+        for frameNumber in range(eventLength):
+            frames.append(thisEventImages[frameNumber])
         thisEventImages = normalizePixelValues(thisEventImages,0,255)
         print(eventNumber)
         # do stuff here
@@ -219,24 +219,26 @@ for runName in runNames:
             thisEvent1[frameNumber] = overlayFrames(thisEvent1[frameNumber],thisEvent2[np.min([len(thisEventImages)-1,ballParkFrame+2])])
             if detectedFrame == 0 and np.sum(thisEvent1[frameNumber]) > 0:
                 detectedFrame = frameNumber
+        if detectedFrame == 0:
+            detectedFrame = 200
         detectedFrames.append(str(detectedFrame+1)+'-'+answerKeyLines[eventNumber])
         codeFrame.append(detectedFrame+1)
         keyFrame.append(int(answerKeyLines[eventNumber].split(' ')[0]))
         labels.append(str(eventNumber+1))
-        thisImages = concatFrames(concatFrames(padEvent(frames),padEvent(thisEventImages),2),concatFrames(padEvent(thisEvent1),padEvent(thisEvent2),2),1)
-        thisImages = eventFrameStamp(eventNumber,thisImages,eventPrefixes[eventNumber],eventFrameTimestamps[eventNumber],True)
-        # below is purely comparison based
-        low = detectedFrame
-        high = int(answerKeyLines[eventNumber].split(' ')[0])
-        if high < low:
-            low = high
-            high = detectedFrame
-        low = int(np.max([0,low-np.max([(high-low)/2,5])]))
-        high = int(np.min([eventLength,high+np.max([(high-low)/2,5])]))
-        for frameNumber in range(low,high):
-            thisImages[frameNumber] = imgNumStamps(int(detectedFrame+1),10,0,thisImages[frameNumber])
-            thisImages[frameNumber] = imgNumStamps(int(answerKeyLines[eventNumber].split(' ')[0]),20,0,thisImages[frameNumber])
+        # thisImages = concatFrames(concatFrames(padEvent(frames),padEvent(thisEventImages),2),concatFrames(padEvent(thisEvent1),padEvent(thisEvent2),2),1)
+        # thisImages = eventFrameStamp(eventNumber,thisImages,eventPrefixes[eventNumber],eventFrameTimestamps[eventNumber],True)
+        # # below is purely comparison based
+        # low = detectedFrame
+        # high = int(answerKeyLines[eventNumber].split(' ')[0])
+        # if high < low:
+        #     low = high
+        #     high = detectedFrame
+        # low = int(np.max([0,low-np.max([(high-low)/2,5])]))
+        # high = int(np.min([eventLength,high+np.max([(high-low)/2,5])]))
+        # for frameNumber in range(low,high):
+        #     thisImages[frameNumber] = imgNumStamps(int(detectedFrame+1),10,0,thisImages[frameNumber])
+        #     thisImages[frameNumber] = imgNumStamps(int(answerKeyLines[eventNumber].split(' ')[0]),20,0,thisImages[frameNumber])
         # leave stamp code output? (seems very useful)
-            Images.append(cv2.resize(thisImages[frameNumber],(2*115,89*2)))
-    # makeBarGraph(labels,0.35,['Code Output','Answer Key'],[codeFrame,keyFrame],runName[0:-8],'Detection Frame','Event Number',True,True)
-writeAviVideo(videoName = 'Batch mini - misc.1',frameRate = 1,allImages = Images,openVideo = True)
+            # Images.append(cv2.resize(thisImages[frameNumber],(2*115,89*2)))
+    makeBarGraph(labels,0.35,['Code Output','Answer Key'],[codeFrame,keyFrame],runName[0:-8],'Detection Frame','Event Number',True,True)
+# writeAviVideo(videoName = 'Batch mini - misc.1',frameRate = 1,allImages = Images,openVideo = True)

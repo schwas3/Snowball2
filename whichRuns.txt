@@ -1,23 +1,24 @@
-AmBe B0 - 8 bit,4
-AmBe B0 - 8 bit,16
-AmBe B1 - 8 bit,3
-AmBe B1 - 8 bit,4
-AmBe B1 - 8 bit,8
-AmBe B1 - 8 bit,12
-AmBe B1 - 8 bit,14
-AmBe B1 - 8 bit,17
-AmBe C0 - 8 bit,23
-AmBe top A - 8 bit,25
-control 01 - 8bit,3
-control 01 - 8bit,17, check 14/15 visually?
-control 02 - 8 bit,5
-control 06 - 8 bit,40
-control 07 - 8 bit,12, check 30-50 visually?
-control 09 - 8 bit,4
-control 10 - 8 bit,6
-control B0 - 8 bit,10
-control B0 - 8 bit,19, check 21-26 visually?
-control B0 - 8 bit,27
-Control C0 - 8 bit,11
-Cs-137 04 - 8 bit,49
-cs137 06 - 8 bit,9
+Notes on which runs have problems in reported detected frame (if no notes then has not been inspected)
+AmBe B0 - 8 bit,4, CODE IS RIGHT
+AmBe B0 - 8 bit,16, CODE IS RIGHT
+AmBe B1 - 8 bit,3, *** DISREGARD ALL AmBe B1 ***
+AmBe B1 - 8 bit,4, *** DISREGARD ALL AmBe B1 ***
+AmBe B1 - 8 bit,8, *** DISREGARD ALL AmBe B1 ***
+AmBe B1 - 8 bit,12, *** DISREGARD ALL AmBe B1 ***
+AmBe B1 - 8 bit,14, *** DISREGARD ALL AmBe B1 ***
+AmBe B1 - 8 bit,17, *** DISREGARD ALL AmBe B1 ***
+AmBe C0 - 8 bit,23, this is far too low quality to reasonably be able to get correct - disregard
+AmBe top A - 8 bit,25, CODE IS RIGHT
+control 01 - 8bit for sub,3 CODE IS RIGHT
+control 01 - 8bit for sub,17, check 14/15 visually? CODE IS RIGHT FOR ALL 3
+control 02 - 8 bit,5, quality too low - disregard
+control 06 - 8 bit,40, CODE IS RIGHT
+control 07 - 8 bit,12, check 30-50 visually? 12 - this is supposed to be 196, just resorting no detection to frame 200 will fix this. 30-50 are OK, normalization explains discrepancy between code and answer key
+control 09 - 8 bit,4, quality too low - disregard
+control 10 - 8 bit,6, THIS IS SIGNIFICANT? I DO NOT UNDERSTAND WHY THE CODE FAILS ON THIS EVENT - THERE IS HOWEVER SIGNIFICANT NOISE
+control B0 - 8 bit,10, IGNORE
+control B0 - 8 bit,19, check 21-26 visually? *** IGNORE THIS FOLDER COMPLETELY ***
+control B0 - 8 bit,27, IGNORE
+Control C0 - 8 bit,11, CODE IS RIGHT
+Cs-137 04 - 8 bit,49, CODE IS RIGHT
+cs137 06 - 8 bit,9, see control 07 - 12 comment
