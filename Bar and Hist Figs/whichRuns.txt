@@ -1,4 +1,5 @@
 Notes on which runs have problems in reported detected frame (if no notes then has not been inspected)
+AmBe 00 - 8 bit,ALL, IGNORE THIS FOLDER, MANY MISSING IMAGES
 AmBe B0 - 8 bit,4, CODE IS RIGHT
 AmBe B0 - 8 bit,16, CODE IS RIGHT
 AmBe B1 - 8 bit,3, *** DISREGARD ALL AmBe B1 ***

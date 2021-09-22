@@ -220,7 +220,7 @@ for runName in runNames:
             if detectedFrame == 0 and np.sum(thisEvent1[frameNumber]) > 0:
                 detectedFrame = frameNumber
         if detectedFrame == 0:
-            detectedFrame = 200
+            detectedFrame = eventLength
         detectedFrames.append(str(detectedFrame+1)+'-'+answerKeyLines[eventNumber])
         codeFrame.append(detectedFrame+1)
         keyFrame.append(int(answerKeyLines[eventNumber].split(' ')[0]))
