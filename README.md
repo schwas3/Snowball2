@@ -12,3 +12,6 @@ Scott Schwartz software used:
         - Various py and jupyter extensions - "jupyter" extension, "jupyter keymap" extension, "Pylance" extension, "Python" extension - all help with viewing code within visual studio code in a more visually friendly manner while editing and viewing it.
 
 File size management: in order to make the repository not excessively large a solution for keeping the cropped images is currently being developed using a second repo
+
+BE SURE TO VIEW whichRuns.txt
+https://github.com/schwas3/Snowball2/blob/main/Bar%20and%20Hist%20Figs/whichRuns.txt
