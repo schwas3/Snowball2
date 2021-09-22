@@ -61,13 +61,13 @@ def addLeadingZeros(finalLength, currentText): # adds leading zeros to match the
     while len(currentText) < finalLength:
         currentText = '0' + currentText
     return currentText
-groupNames = ['fiesta front w Be 10 - 8 bit']#,'cs-137 05 - 8 bit','control 08 - 8 bit'] # the short name of the folder containing images (tif files)
-threshBeta = 150
-thresh = 10
+groupNames = ['control 08 - 8 bit']#,'cs-137 05 - 8 bit','fiesta front w Be 10 - 8 bit'] # the short name of the folder containing images (tif files)
+threshBeta = 5
+thresh = 5
 histBig = 50
 hist = 100
-blurBig = 15
-blur = 5
+blurBig = 3
+blur = 3
 Images = [] # initializes the array used to store images to make a movie
 writeVid=True # self explanatory
 # WIP
@@ -82,14 +82,18 @@ for groupName in groupNames:
     data_folder_path = data_repo_path + os.path.sep + data_folder_name # THIS LINE MUST BE CORRECT EVERYTHING ELSE IS NOT ESSENTIAL
     # the above line must include the path to the folder containing runs (i.e. 'PATH/control 08 - 8 bit')
     groupName, runNames, runTimesteps, runImages = getRunsFromGroup(data_folder_path) # calls getRunsFromGroup data_folder_path MUST BE A COMPLETE PATH, ALL 
-
+    print(groupName)
     # --- These should be configured --- #
     allRunsInFolder = False
     if allRunsInFolder:
         runsOfInterest = range(len(runNames))
         batchName = 'Alll'
     else:
-        runsOfInterest = [6,13,22,27,29,31,36,41,47] # MUST be an array of run indices (0-indexed) #range(len(runNames)) to read all files in folder
+        runsOfInterest = [15,16,17,19,25,34,38,41] # MUST be an array of run indices (0-indexed) #range(len(runNames)) to read all files in folder
+        for i in range(len(runsOfInterest)):
+            run = runsOfInterest.pop(0)
+            if run <= len(runNames):
+                runsOfInterest.append(run)
         batchName = ''
         for i in range(len(runsOfInterest)):
             batchName += str(runsOfInterest[i])+','
@@ -99,7 +103,6 @@ for groupName in groupNames:
     correctedImages = [] # initializes the array used to store corrected images used for detection
     # blur = [1,3,5,7,9,11,13,15,17]
     # thresh = range(40,155,10)
-    print(groupName)
     for runNumber in runsOfInterest: # iterates over all runNumber in runsOfInterest (note: runNumber is 0-indexed)
         thisRunName = runNames[runNumber] # pulls the name of the run (i.e. the prefix)
         thisRunTimesteps = runTimesteps[runNumber] # pulls all the timesteps for the current run
@@ -107,8 +110,11 @@ for groupName in groupNames:
         threshBig = threshBeta#/255*(255-np.mean(thisRunImages))
         mid = int(np.mean(thisRunImages))
         bottom = 2*mid-255
-        if bottom > 0:
-            thisRunImages = np.where(np.subtract(thisRunImages,bottom)<0, 0,np.multiply(np.subtract(thisRunImages,bottom),255/(255-bottom)))
+        if 255 - mid < mid:
+            thisRunImages = np.where(np.array(thisRunImages) < bottom, 0,np.multiply(np.subtract(thisRunImages,bottom),255/(255-bottom)))
+        else:
+            top = 2*mid
+            thisRunImages = np.where(np.array(thisRunImages) > top,255,np.multiply(thisRunImages,255/top))
         fgbgForward = cv2.createBackgroundSubtractorMOG2(history = hist,varThreshold = thresh, detectShadows = False) # initializes the background subtractor MOG2
         fgbgReverse = cv2.createBackgroundSubtractorMOG2(history = hist,varThreshold = thresh, detectShadows = False) # initializes the background subtractor MOG2
         fgbgBig = cv2.createBackgroundSubtractorMOG2(history = histBig,varThreshold = threshBig, detectShadows = False) # initializes the background subtractor MOG2
@@ -117,6 +123,7 @@ for groupName in groupNames:
         thisRunCorrectedImages = []
         print(runNumber)
         originalFrameB = []
+        compositeFrame1 = []
         # originalFrame = []
         reverseFrameB = []
         # reverseFrame = []
@@ -126,6 +133,7 @@ for groupName in groupNames:
         for i in range(len(thisRunImages)):
             bigFrame.append([])
             originalFrameB.append([])
+            compositeFrame1.append([])
             # originalFrame.append([])
             reverseFrameB.append([])
             # reverseFrame.append([])
@@ -149,11 +157,17 @@ for groupName in groupNames:
         # midRow2 = np.concatenate((reverseFrame,reverseFrameB),axis=1)
         compositeFrame = np.multiply(np.divide(originalFrameB,255),reverseFrameB)
         square = np.concatenate((frame,compositeFrame),axis=2)
-        compositeFrame1 = np.multiply(np.divide(compositeFrame,255),bigFrame[0])
+        for frameNumber in range(1,len(thisRunImages)+1):
+            compositeFrame1[frameNumber%201] = np.multiply(compositeFrame[frameNumber%201],np.multiply(np.divide(bigFrame[np.min([frameNumber+3,201])%201],255),np.divide(bigFrame[np.min([frameNumber+6,201])%201],255)))
         # bigFrameHolder = []
         # for i in range(201):
         #     bigFrameHolder.append(bigFrame[0])
-        square1 = np.concatenate((bigFrame,compositeFrame1),axis=2)
+        square1 = [np.concatenate((bigFrame[0],bigFrame[0]),axis=1)]
+        for i in range(200,0,-1):
+            square1temp = bigFrame[i]
+            bigFrame[i]=np.multiply(bigFrame[i],np.divide(bigFrame[(i+1)%201],255))
+            square1.insert(0,(np.concatenate((square1temp,bigFrame[i]),axis=1)))
+        # square1 = np.concatenate((bigFrame,compositeFrame1),axis=2)
         square=np.concatenate((square,square1),axis=1)     
         # square = np.multiply(reverseFrameB,np.divide(originalFrameB,255))
         # square = np.where(np.multiply(reverseFrameB,originalFrameB)>0, 255, np.zeros_like(frame))
@@ -161,8 +175,8 @@ for groupName in groupNames:
         # square = np.concatenate((square,midRow2),axis=2)
         # square = np.concatenate((square,botRow),axis=2)
         if writeVid:
-            for frameNumber in range(len(thisRunImages)):
-                thisFrameImage = square[frameNumber]
+            for frameNumber in range(1,len(thisRunImages)+1):
+                thisFrameImage = square[frameNumber%201]
                 thisFrameImage = imgNumStamps(addLeadingZeros(2,runNumber+1)+'-'+addLeadingZeros(3,frameNumber%201),0,0,thisFrameImage)
                 # thisFrameImage = imgNumStamps(thisRunName,len(thisFrameImage)-15,0,thisFrameImage)
                 # thisFrameImage = imgNumStamps(addLeadingZeros(10,thisRunTimesteps[frameNumber%201]),len(thisFrameImage)-8,0,thisFrameImage)

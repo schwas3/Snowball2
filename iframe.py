@@ -18,7 +18,7 @@ threshBig = 150
 hist = 100
 histBig = 50
 detectedFrames = []
-groupNames = ['control 06 - 8 bit','control 07 - 8 bit','control 10 - 8 bit','AmBe 01 - 8 bit','cs137 06 - 8 bit'] # the short name of the folder containing images (tif files)
+groupNames = ['control 08 - 8 bit','cs-137 05 - 8 bit','fiesta front w Be 10 - 8 bit']#['control 06 - 8 bit','control 07 - 8 bit','control 10 - 8 bit','AmBe 01 - 8 bit','cs137 06 - 8 bit'] # the short name of the folder containing images (tif files)
 txtName = ''
 this_file_path = os.path.realpath(__file__) # gets the path to this file including the file
 this_repo_path, this_file_name = os.path.split(this_file_path) # gets the path to the repository containing this file and the file name
@@ -66,8 +66,8 @@ def writeAviVideo(videoName, frameRate, images, openVideo: bool): # creates a vi
     height, width = images[0].shape
     size = (width,height)
     out = cv2.VideoWriter(videoName+'.avi',cv2.VideoWriter_fourcc(*'DIVX'), frameRate, size, isColor=0) # isColor = 0 can be replaced by changing line (this line + 2 (or 3) to out.write(cv2.merge([imgs[i],imgs[i],imgs[i]]))
-    for i in range(len(images)):
-        out.write(images[i])
+    for img in images:
+        out.write(img)
     out.release()
     if openVideo:
         startfile(this_repo_path+os.path.sep+videoName+".avi")
@@ -103,10 +103,14 @@ for groupName in groupNames:
         thisRunName = runNames[runNumber] # pulls the name of the run (i.e. the prefix)
         thisRunTimesteps = runTimesteps[runNumber] # pulls all the timesteps for the current run
         thisRunImages = runImages[runNumber] # pulls all the frames in the current run
+        runLength = len(thisRunImages)
         mid = int(np.mean(thisRunImages))
         bottom = 2*mid-255
         if bottom > 0:
-            thisRunImages = np.where(np.subtract(thisRunImages,bottom)<0, 0,np.multiply(np.subtract(thisRunImages,bottom),255/(255-bottom)))
+            thisRunImages = np.where(np.array(thisRunImages) < bottom, 0,np.multiply(np.subtract(thisRunImages,bottom),255/(255-bottom)))
+        else:
+            top = 2*mid
+            thisRunImages = np.where(np.array(thisRunImages) > top,255,np.multiply(thisRunImages,255/top))
         fgbgForward = cv2.createBackgroundSubtractorMOG2(history = hist,varThreshold = thresh, detectShadows = False) # initializes the background subtractor MOG2
         fgbgReverse = cv2.createBackgroundSubtractorMOG2(history = hist,varThreshold = thresh, detectShadows = False) # initializes the background subtractor MOG2
         fgbgBig = cv2.createBackgroundSubtractorMOG2(history = histBig,varThreshold = threshBig, detectShadows = False) # initializes the background subtractor MOG2
@@ -115,35 +119,54 @@ for groupName in groupNames:
         forwardImages = []
         reverseImages = []
         bigImages = []
+        bigFrameVal = []
+        frameVal = []
         compositeImages = []
-        for i in range(len(thisRunImages)):
+        for i in range(runLength):
             blurredImages.append([])
             forwardImages.append([])
             reverseImages.append([])
             bigImages.append([])
+            frameVal.append(0)
+            bigFrameVal.append(0)
             compositeImages.append([])
-        for frameNumber in range(1,len(thisRunImages)+1): # iterates through every index in the range of the number of frames in the run
-            thisFrameImage = thisRunImages[frameNumber%len(thisRunImages)] # gets the current frame
-            blurredImages[frameNumber%len(thisRunImages)]=cv2.GaussianBlur(thisFrameImage,(blur,blur),cv2.BORDER_DEFAULT)
-            forwardImages[frameNumber%len(thisRunImages)]=fgbgForward.apply(blurredImages[frameNumber%len(thisRunImages)]) # applies the background subtractor to the current frame in forward
+        for frameNumber in range(1,runLength+1): # iterates through every index in the range of the number of frames in the run
+            thisFrameImage = thisRunImages[frameNumber%runLength] # gets the current frame
+            blurredImages[frameNumber%runLength]=cv2.GaussianBlur(thisFrameImage,(blur,blur),cv2.BORDER_DEFAULT)
+            forwardImages[frameNumber%runLength]=fgbgForward.apply(blurredImages[frameNumber%runLength]) # applies the background subtractor to the current frame in forward
             if frameNumber < 51:
-                bigImages[frameNumber%len(thisRunImages)]=fgbgBig.apply(cv2.GaussianBlur(thisFrameImage,(blurBig,blurBig),cv2.BORDER_DEFAULT))
+                bigImages[frameNumber%runLength]=fgbgBig.apply(cv2.GaussianBlur(thisFrameImage,(blurBig,blurBig),cv2.BORDER_DEFAULT))
             else:
-                bigImages[frameNumber%len(thisRunImages)]=fgbgBig.apply(cv2.GaussianBlur(thisFrameImage,(blurBig,blurBig),cv2.BORDER_DEFAULT),learningRate=0)
-        for frameNumber in range(len(thisRunImages),0,-1): # iterates in reverse
-            reverseImages[frameNumber%len(thisRunImages)]=fgbgReverse.apply(np.array(blurredImages[frameNumber%len(thisRunImages)])) # applies the background subtractor to the current frame in reverse
+                bigImages[frameNumber%runLength]=fgbgBig.apply(cv2.GaussianBlur(thisFrameImage,(blurBig,blurBig),cv2.BORDER_DEFAULT),learningRate=0)
+            bigFrameVal[frameNumber%runLength]=np.sum(bigImages[frameNumber%runLength])
+        for frameNumber in range(runLength,0,-1): # iterates in reverse
+            reverseImages[frameNumber%runLength]=fgbgReverse.apply(np.array(blurredImages[frameNumber%runLength])) # applies the background subtractor to the current frame in reverse
         compositeImages = np.multiply(np.divide(forwardImages,255),reverseImages)
         ballParkFrame = 0
-        for frameNumber in range(50,len(thisRunImages)):
+        for frameNumber in range(50,runLength):
             tempFrameNumber = frameNumber
             frameIsValid = ballParkFrame == 0
             for i in range(5):
-                if tempFrameNumber <= len(thisRunImages)+1 and np.sum(bigImages[tempFrameNumber%len(thisRunImages)]) == 0:
+                if frameIsValid and tempFrameNumber <= runLength+1 and bigFrameVal[tempFrameNumber%runLength] == 0:
                     frameIsValid = False
                 tempFrameNumber += 1
             if frameIsValid:
-                ballParkFrame = frameNumber
-        detectedFrame = ballParkFrame
+                ballParkFrameTest = bigImages[frameNumber]
+                for offFrameNumber in range(np.min([frameNumber+1,runLength]),np.min([frameNumber+8,runLength+1])):
+                    ballParkFrameTest = np.multiply(ballParkFrameTest,np.divide(bigImages[offFrameNumber%runLength],255))
+                    if np.sum(ballParkFrameTest) == 0:
+                        frameIsValid = False
+                if frameIsValid:
+                    ballParkFrame = frameNumber
+        for frameNumber in range(runLength):
+            compositeImages[frameNumber] = np.multiply(compositeImages[frameNumber],np.multiply(np.divide(bigImages[np.min([frameNumber+3,runLength])%runLength],255),np.divide(bigImages[np.min([frameNumber+6,runLength])%runLength],255)))
+            frameVal[frameNumber]=np.sum(compositeImages[frameNumber])
+        for frameNumber in range(ballParkFrame-30,runLength):
+            if detectedFrame == 0:
+                detectedFrame = frameNumber
+                for offFrameNumber in range(frameNumber,np.min([frameNumber+3,runLength+1])):
+                    if frameVal[offFrameNumber%runLength] == 0:
+                        detectedFrame = 0
         detectedFrames.append(str(detectedFrame)+' - '+answerKeyLines[runNumber])
     # txtName += groupName+','
 txtName = 'Batch - Results' + ' - hist='+str(hist)+',vT='+str(thresh)+',blur='+str(blur)+','
