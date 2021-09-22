@@ -1,0 +1,23 @@
+AmBe B0 - 8 bit,4
+AmBe B0 - 8 bit,16
+AmBe B1 - 8 bit,3
+AmBe B1 - 8 bit,4
+AmBe B1 - 8 bit,8
+AmBe B1 - 8 bit,12
+AmBe B1 - 8 bit,14
+AmBe B1 - 8 bit,17
+AmBe C0 - 8 bit,23
+AmBe top A - 8 bit,25
+control 01 - 8bit,3
+control 01 - 8bit,17, check 14/15 visually?
+control 02 - 8 bit,5
+control 06 - 8 bit,40
+control 07 - 8 bit,12, check 30-50 visually?
+control 09 - 8 bit,4
+control 10 - 8 bit,6
+control B0 - 8 bit,10
+control B0 - 8 bit,19, check 21-26 visually?
+control B0 - 8 bit,27
+Control C0 - 8 bit,11
+Cs-137 04 - 8 bit,49
+cs137 06 - 8 bit,9

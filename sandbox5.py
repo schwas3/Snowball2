@@ -13,10 +13,9 @@ from os.path import exists
 def makeBarGraph(labels,width,barLabels,barData,title,yLabel,xLabel, makeBar: bool, makeHist: bool):
     if makeBar:
         x = np.arange(len(labels))  # the label locations
-        width = 0.35  # the width of the bars
         fig, ax = plt.subplots(figsize=(10,5.63))
-        rects1 = ax.bar(x - width/2, barData[0], width, label = barLabels[0])
-        rects2 = ax.bar(x + width/2, barData[1], width, label = barLabels[1])
+        rects1 = ax.bar(x - width/2, barData[0], width, label = barLabels[0]+' (Mean = '+str(round(np.mean(barData[0]),2))+', Std = '+str(round(np.std(barData[0]),2))+')')
+        rects2 = ax.bar(x + width/2, barData[1], width, label = barLabels[1]+' (Mean = '+str(round(np.mean(barData[1]),2))+', Std = '+str(round(np.std(barData[1]),2))+')')
 
         # Add some text for labels, title and custom x-axis tick labels, etc.
         ax.set_ylabel(yLabel,fontsize = 10)
@@ -26,52 +25,59 @@ def makeBarGraph(labels,width,barLabels,barData,title,yLabel,xLabel, makeBar: bo
         ax.set_xticklabels(labels,fontsize = 6)
         ax.legend(fontsize = 8)
 
-        ax.bar_label(rects1, padding=3, fontsize = 6)
-        ax.bar_label(rects2, padding=3,fontsize = 6)
+        ax.bar_label(rects1, padding=2, fontsize = 6)
+        ax.bar_label(rects2, padding=2,fontsize = 6)
 
         fig.tight_layout()
         suffix = 0
-        while exists(str(title)+' '+str(suffix)+'.png'):
-            suffix += 1
+        # while exists(str(title)+' '+str(suffix)+'.png'):
+        #     suffix += 1
         plt.savefig(str(title)+' '+str(suffix)+'.png')
     if makeHist:
         suffix = 0
         fig = plt.figure(figsize=(10,5.63))
         plt.subplot(1,2,1,title='Code Output' + ' ('+str(title)+')')
         plt.hist(barData[0],bins=8,alpha=0.5,rwidth=0.9)
-        plt.xlabel('Detection Frame')
+        plt.xlabel('Detection Frame'+' (Mean = '+str(round(np.mean(barData[0]),2))+', Std = '+str(round(np.std(barData[0]),2))+')')
         plt.ylabel('Frequency')
         plt.subplot(1,2,2,title='Answer Key' + ' ('+str(title)+')')
-        plt.xlabel('Detection Frame')
+        plt.xlabel('Detection Frame'+' (Mean = '+str(round(np.mean(barData[1]),2))+', Std = '+str(round(np.std(barData[1]),2))+')')
         plt.ylabel('Frequency')
         plt.hist(barData[1],bins=8,alpha=0.5,rwidth=0.9)
-        while exists(str(title)+' hist '+str(suffix)+'.png'):
-            suffix += 1
+        # while exists(str(title)+' hist '+str(suffix)+'.png'):
+        #     suffix += 1
         plt.savefig(str(title)+' hist '+str(suffix)+'.png')
-def padRun(runImages):
-    return np.pad(runImages,[(0,0),(1,1),(1,1)],'constant',constant_values = 255)
-def initializeImages(runImages):
+def padEvent(eventImages):
+    return np.pad(eventImages,[(0,0),(1,1),(1,1)],'constant',constant_values = 255)
+def initializeImages(eventImages):
     newImages = []
-    for runImage in runImages:
-        newImages.append(runImage)
+    for eventImage in eventImages:
+        newImages.append(eventImage)
     return newImages
-def runFrameStamp(runNumber,runImages):
-    images = initializeImages(runImages)
-    for frameNumber in range(len(images)):
-        images[frameNumber] = imgNumStamps(addLeadingZeros(2,runNumber+1)+'-'+addLeadingZeros(3,(frameNumber+1)%len(images)),0,0,images[frameNumber])
+def eventFrameStamp(eventNumber,eventImages,eventPrefix,eventTimestamps,labels: bool):
+    images = initializeImages(eventImages)
+    if labels:
+        for frameNumber in range(len(images)):
+            images[frameNumber] = imgNumStamps(addLeadingZeros(2,eventNumber+1)+'-'+addLeadingZeros(3,(frameNumber+1)%len(images)),0,0,images[frameNumber])
+            images[frameNumber] = imgNumStamps(eventPrefix,len(images[frameNumber])-15,0,images[frameNumber])
+            images[frameNumber] = imgNumStamps(addLeadingZeros(10,eventTimestamps[frameNumber]),len(images[0])-8,0,images[frameNumber])
+    else:
+        for frameNumber in range(len(images)):
+            images[frameNumber] = imgNumStamps(addLeadingZeros(2,eventNumber+1)+'-'+addLeadingZeros(3,(eventNumber+1)%len(images)),0,0,images[frameNumber])    
     return images
-def normalizePixelValues(runImages):
-    images = initializeImages(runImages)
+def normalizePixelValues(eventImages,lowerLimit,upperLimit):
+    images = initializeImages(eventImages)
     mid = int(np.mean(images))
     bottom = 2*mid-255
     if 255 - mid < mid:
+        bottom = np.max([bottom,lowerLimit])
         images = np.where(np.array(images) < bottom, 0,np.multiply(np.subtract(images,bottom),255/(255-bottom)))
     else:
-        top = 2*mid
+        top = np.min([2*mid,upperLimit])
         images = np.where(np.array(images) > top,255,np.multiply(images,255/top))
     return images
-def extractForegroundMask(reverse: bool, mustExistInPreviousFrames: bool,static: bool,runImages, histLength, threshold,blur, pad: bool): #returns the filtered run images
-    images = initializeImages(runImages)
+def extractForegroundMask(reverse: bool, mustExistInPreviousFrames: bool,static: bool,eventImages, histLength, threshold,blur,startingFrom): #returns the filtered run images
+    images = initializeImages(eventImages)
     if blur > 0:
         for i in range(len(images)):
             images[i] = cv2.GaussianBlur(images[i],(blur,blur),cv2.BORDER_DEFAULT)
@@ -92,17 +98,16 @@ def extractForegroundMask(reverse: bool, mustExistInPreviousFrames: bool,static:
             else:
                 images[frameNumber] = fgbg.apply(images[frameNumber])
         if mustExistInPreviousFrames:
-            for frameNumber in range(len(images)-2,-1,-1):
+            if startingFrom == 0 or startingFrom > len(images)-2:
+                startingFrom = len(images)-2
+            for frameNumber in range(startingFrom,-1,-1):
                 images[frameNumber] = np.multiply(images[frameNumber],np.divide(images[frameNumber+1],255))
-    if pad:
-        for frameNumber in range(len(images)):
-            images[frameNumber] = np.pad(images[frameNumber],1,mode='constant',constant_values=255)
     return images
 def overlayFrames(frame1,frame2): # returns the composite frame of two frames
     return np.multiply(frame1,np.divide(frame2,255))
-def getRunsFromGroup(groupFolder): # str - name of grou p, str array - names of runs, str 2d array - timestamps in runs, str 2d array - filenames in runs
-    filename_RFG = glob.glob(groupFolder + os.path.sep + '*.tif')
-    groupName_RFG = os.path.basename(groupFolder)
+def getEventsFromRun(runFolder): # str - name of grou p, str array - names of runs, str 2d array - timestamps in runs, str 2d array - filenames in runs
+    filename_RFG = glob.glob(runFolder + os.path.sep + '*.tif')
+    groupName_RFG = os.path.basename(runFolder)
     runNames_RFG = []
     runImages_RFG = []
     runTimestamps_RFG = []
@@ -154,7 +159,7 @@ def addLeadingZeros(finalLength, currText): # adds leading zeros to match the ex
     while len(currentText) < finalLength:
         currentText = '0' + currentText
     return currentText
-groupNames = ['control 08 - 8 bit']#,'cs-137 05 - 8 bit','fiesta front w Be 10 - 8 bit'] # the short name of the folder containing images (tif files)
+runNames = ['control 01 - 8 bit','control 07 - 8 bit','control B0 - 8 bit',] # the short name of the folder containing images (tif files)
 Images = [] # initializes the array used to store images to make a movie
 this_file_path = os.path.realpath(__file__) # gets the path to this file including the file
 this_repo_path, this_file_name = os.path.split(this_file_path) # gets the path to the repository containing this file and the file name
@@ -162,76 +167,76 @@ github_path, this_repo_name = os.path.split(this_repo_path) # gets the users git
 data_repo_name = "Snowball3"
 data_repo_path = github_path + os.path.sep + data_repo_name
 detectedFrames = []
-for groupName in groupNames:
-    data_folder_name = 'SNOWBALL CROPPED IMAGES' + os.path.sep + groupName
+for runName in runNames:
+    data_folder_name = 'SNOWBALL CROPPED IMAGES' + os.path.sep + runName
     data_folder_path = data_repo_path + os.path.sep + data_folder_name # THIS LINE MUST BE CORRECT EVERYTHING ELSE IS NOT ESSENTIAL
-    print(groupName)
-    groupName, runNames, runTimesteps, thisGroupRunImages = getRunsFromGroup(data_folder_path) # calls getRunsFromGroup data_folder_path MUST BE A COMPLETE PATH, ALL
-    allRunsInFolder = True
-    if allRunsInFolder:
-        runsOfInterest = range(len(runNames))
-        batchName = 'All,'
+    runName, eventPrefixes, eventFrameTimestamps, runEventImages = getEventsFromRun(data_folder_path) # calls getRunsFromGroup data_folder_path MUST BE A COMPLETE PATH, ALL
+    print(str(runName)+'/'+str(len(eventPrefixes)))
+    allEventsInFolder = True
+    if allEventsInFolder:
+        eventsOfInterest = range(len(eventPrefixes))
     else:
-        runsOfInterest = [15,16,17,19,25,34,38,41] # MUST be an array of run indices (0-indexed) #range(len(runNames)) to read all files in folder
-        for i in range(len(runsOfInterest)):
-            run = runsOfInterest.pop(0)
-            if run <= len(runNames):
-                runsOfInterest.append(run)
-        batchName = ''
-        for i in range(len(runsOfInterest)):
-            batchName += str(runsOfInterest[i])+','
-            runsOfInterest[i] -= 1
+        eventsOfInterest = [15,16,17,19,25,34,38,41] # 1-indexing
+        for i in range(len(eventsOfInterest)):
+            event = eventsOfInterest.pop(0)
+            if event <= len(eventPrefixes):
+                eventsOfInterest.append(event)
+        for i in range(len(eventsOfInterest)):
+            eventsOfInterest[i] -= 1
+    # to-do: remove following lines
     answerKeyPath = glob.glob(data_folder_path+os.path.sep+'known*.txt')[0]
     answerKeyFile = open(answerKeyPath,'r')
     answerKeyLines = answerKeyFile.readlines()
     labels = []
     codeFrame = []
     keyFrame = []
-    for runNumber in runsOfInterest: # iterates over all runNumber in runsOfInterest (note: runNumber is 0-indexed)
-        thisRunImages = thisGroupRunImages[runNumber]
-        thisRunImages.append(thisRunImages.pop(0))
-        frames = []
-        for frameNumber in range(len(thisRunImages)):
-            frames.append(thisRunImages[frameNumber])
-        thisRunImages = normalizePixelValues(thisRunImages)
-        print(runNumber)
+    for eventNumber in eventsOfInterest: # iterates over all runNumber in runsOfInterest (note: runNumber is 0-indexed)
+        thisEventImages = runEventImages[eventNumber]
+        eventLength = len(thisEventImages)
+        thisEventImages.append(thisEventImages.pop(0)) # the 0-th frame is removed and added to the end of the event images
+        # frames = []
+        # for frameNumber in range(eventLength):
+        #     frames.append(thisEventImages[frameNumber])
+        thisEventImages = normalizePixelValues(thisEventImages,0,255)
+        print(eventNumber)
         # do stuff here
-        hist = 50
-        thresh = 5
-        blur = 3
-        thisRun1 = extractForegroundMask(False,True,True,thisRunImages, 50,9,0,False)
-        # thisRun2 = extractForegroundMask(False,True,True,thisRunImages,hist,3,15,False)
-        # thisRun3 = thisRunImages
-        # thisRun3 = extractForegroundMask(False,False,True,thisRunImages,50,5,blur,False)
-        thisRun4 = extractForegroundMask(False,True,True,thisRunImages,hist,100,35,False)
+        # thisEvent1 = extractForegroundMask(False,True,True,thisEventImages, 50,9,0,0)
+        thisEvent2 = extractForegroundMask(False,True,True,thisEventImages,50,100,35,0)
         ballParkFrame = 0
         detectedFrame = 0
-        for frameNumber in range(len(thisRunImages)):
+        for frameNumber in range(eventLength):
             if ballParkFrame == 0:
-                if np.sum(thisRun4[frameNumber]) > 0:
+                if np.sum(thisEvent2[frameNumber]) > 0:
                     ballParkFrame = frameNumber
-        for frameNumber in range(len(thisRunImages)):  
-            thisRun1[frameNumber] = overlayFrames(thisRun1[frameNumber],thisRun4[np.min([len(thisRunImages)-1,ballParkFrame+2])])
-            if detectedFrame == 0 and np.sum(thisRun1[frameNumber]) > 0:
+        thisEvent1 = extractForegroundMask(False,True,True,thisEventImages,ballParkFrame - 10,9,0,ballParkFrame+2) # changed hist from - 10 to - 5 and ballparkframe + 2 from + 5
+        thisEvent2 = extractForegroundMask(False,True,True,thisEventImages,ballParkFrame - 10,100,35,ballParkFrame+2)
+        ballParkFrame = 0
+        for frameNumber in range(eventLength):
+            if ballParkFrame == 0:
+                if np.sum(thisEvent2[frameNumber]) > 0:
+                    ballParkFrame = frameNumber
+        for frameNumber in range(eventLength):
+            thisEvent1[frameNumber] = overlayFrames(thisEvent1[frameNumber],thisEvent2[np.min([len(thisEventImages)-1,ballParkFrame+2])])
+            if detectedFrame == 0 and np.sum(thisEvent1[frameNumber]) > 0:
                 detectedFrame = frameNumber
-        detectedFrames.append(str(detectedFrame+1)+'-'+answerKeyLines[runNumber])
+        detectedFrames.append(str(detectedFrame+1)+'-'+answerKeyLines[eventNumber])
         codeFrame.append(detectedFrame+1)
-        keyFrame.append(int(answerKeyLines[runNumber].split(' ')[0]))
-        labels.append(str(runNumber+1))
-        # thisRunImages = runFrameStamp(runNumber,thisRunImages)
-        # thisImages = concatFrames(thisRunImages,thisRun1,2)
-        thisImages = concatFrames(concatFrames(padRun(frames),padRun(thisRunImages),2),concatFrames(padRun(thisRun1),padRun(thisRun4),2),1)
-        thisImages = runFrameStamp(runNumber,thisImages)
+        keyFrame.append(int(answerKeyLines[eventNumber].split(' ')[0]))
+        labels.append(str(eventNumber+1))
+        thisImages = concatFrames(concatFrames(padEvent(frames),padEvent(thisEventImages),2),concatFrames(padEvent(thisEvent1),padEvent(thisEvent2),2),1)
+        thisImages = eventFrameStamp(eventNumber,thisImages,eventPrefixes[eventNumber],eventFrameTimestamps[eventNumber],True)
+        # below is purely comparison based
         low = detectedFrame
-        high = int(answerKeyLines[runNumber].split(' ')[0])
+        high = int(answerKeyLines[eventNumber].split(' ')[0])
         if high < low:
             low = high
             high = detectedFrame
         low = int(np.max([0,low-np.max([(high-low)/2,5])]))
-        high = int(np.min([len(thisRunImages),high+np.max([(high-low)/2,5])]))
+        high = int(np.min([eventLength,high+np.max([(high-low)/2,5])]))
         for frameNumber in range(low,high):
             thisImages[frameNumber] = imgNumStamps(int(detectedFrame+1),10,0,thisImages[frameNumber])
-            thisImages[frameNumber] = imgNumStamps(int(answerKeyLines[runNumber].split(' ')[0]),20,0,thisImages[frameNumber])
+            thisImages[frameNumber] = imgNumStamps(int(answerKeyLines[eventNumber].split(' ')[0]),20,0,thisImages[frameNumber])
+        # leave stamp code output? (seems very useful)
             Images.append(cv2.resize(thisImages[frameNumber],(2*115,89*2)))
-    makeBarGraph(labels,0.35,['Code Output','Answer Key'],[codeFrame,keyFrame],groupName[0:-8],'Detection Frame','Event Number',False,True)
-# writeAviVideo(videoName = 'Batch mini - misc.1',frameRate = 1,allImages = Images,openVideo = True)
+    # makeBarGraph(labels,0.35,['Code Output','Answer Key'],[codeFrame,keyFrame],runName[0:-8],'Detection Frame','Event Number',True,True)
+writeAviVideo(videoName = 'Batch mini - misc.1',frameRate = 1,allImages = Images,openVideo = True)
