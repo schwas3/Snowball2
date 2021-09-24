@@ -14,8 +14,3 @@ control B0 - 8 bit, IGNORE THIS ENTIRE FOLDER
 Control C0 - 8 bit,11, CODE IS RIGHT
 Cs-137 04 - 8 bit,49, CODE IS RIGHT
 cs137 06 - 8 bit,9, OK NOW - CODE IS RIGHT
-
-From folder 'e':
-AmBe pb 0,1, There is no visually detectable snowball, code is fine
-control 1,7, This is unreasonable insignificant of an event, code is fine
-control 3,7, this run has many issues, there is no distinguishable snowball in this event, code is fine
