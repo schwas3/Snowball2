@@ -84,7 +84,7 @@ for groupName in groupNames:
     groupName, runNames, runTimesteps, runImages = getRunsFromGroup(data_folder_path) # calls getRunsFromGroup data_folder_path MUST BE A COMPLETE PATH, ALL 
     print(groupName)
     # --- These should be configured --- #
-    allRunsInFolder = False
+    allRunsInFolder = True
     if allRunsInFolder:
         runsOfInterest = range(len(runNames))
         batchName = 'Alll'
@@ -176,12 +176,12 @@ for groupName in groupNames:
         # square = np.concatenate((square,botRow),axis=2)
         if writeVid:
             for frameNumber in range(1,len(thisRunImages)+1):
-                thisFrameImage = square[frameNumber%201]
+                thisFrameImage = frame[frameNumber%201]
                 thisFrameImage = imgNumStamps(addLeadingZeros(2,runNumber+1)+'-'+addLeadingZeros(3,frameNumber%201),0,0,thisFrameImage)
                 # thisFrameImage = imgNumStamps(thisRunName,len(thisFrameImage)-15,0,thisFrameImage)
                 # thisFrameImage = imgNumStamps(addLeadingZeros(10,thisRunTimesteps[frameNumber%201]),len(thisFrameImage)-8,0,thisFrameImage)
                 # if frameNumber == 0:
-                Images.append(cv2.resize(thisFrameImage,(2*113,87*2)))
+                Images.append(cv2.resize(frame,(113,87)))
         # for frameNumber in range(0,-1*len(runImages[runNumber]),-1): # iterates through every index in the range of the number of frames in the run
         #     thisFrameImage = thisRunImages[frameNumber]
         #     thisFrameBlurredImage = cv2.GaussianBlur(thisFrameImage,(blur,blur),cv2.BORDER_DEFAULT)
