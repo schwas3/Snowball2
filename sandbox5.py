@@ -226,9 +226,9 @@ for runName in runNames:
         if thisEventFrameTimestamps[0][0] == '0':
             thisEventImages.append(thisEventImages.pop(0)) # the 0-th frame is removed and added to the end of the event images
             thisEventFrameTimestamps.append(thisEventFrameTimestamps.pop(0)) # the 0-th frame is removed and added to the end of the event images
-        # frames = []
-        # for frameNumber in range(eventLength):
-        #     frames.append(thisEventImages[frameNumber])
+        frames = []
+        for frameNumber in range(eventLength):
+            frames.append(thisEventImages[frameNumber])
         thisEventImages = normalizePixelValues(thisEventImages,30,225) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
         print(eventNumber)
         # do stuff here
@@ -255,14 +255,17 @@ for runName in runNames:
             detectedFrame = eventLength
         detectedFrames.append(str(detectedFrame)+','+eventPrefixes[eventNumber]+'_'+thisEventFrameTimestamps[(detectedFrame)%eventLength]+'\n')
         # detectedFrames.append(str(detectedFrame)) #+'-'+answerKeyLines[eventNumber])
-        # codeFrame.append(detectedFrame)
+        codeFrame.append(detectedFrame)
         # keyFrame.append(int(answerKeyLines[eventNumber].split(' ')[0]))
-        # labels.append(str(eventNumber+1))
-        # thisImages = concatFrames(concatFrames(padEvent(frames),padEvent(thisEventImages),2),concatFrames(padEvent(thisEvent1),padEvent(thisEvent2),2),1)
-        # thisImages = eventFrameStamp(eventNumber,thisImages,eventPrefixes[eventNumber],thisEventFrameTimestamps,True)
+        labels.append(str(eventNumber+1))
+        thisImages = concatFrames(concatFrames(padEvent(frames),padEvent(thisEventImages),2),concatFrames(padEvent(thisEvent1),padEvent(thisEvent2),2),1)
+        tStamp = []
+        for timestamp in thisEventFrameTimestamps:
+            tStamp.append(timestamp.replace('.',''))
+        thisImages = eventFrameStamp(eventNumber,thisImages,eventPrefixes[eventNumber].replace('.',''),tStamp,True)
         # # below is purely comparison based
-        # low = np.max([0,detectedFrame - 5])
-        # high = np.min([eventLength,detectedFrame + 5])
+        low = np.max([0,detectedFrame - 5])
+        high = np.min([eventLength,detectedFrame + 5])
         # low = 0
         # high = eventLength
         # low = detectedFrame
@@ -272,17 +275,17 @@ for runName in runNames:
         #     high = detectedFrame
         # low = int(np.max([0,low-np.max([(high-low)/2,5])]))
         # high = int(np.min([eventLength,high+np.max([(high-low)/2,5])]))
-        # for frameNumber in range(low,high):
-        #     thisImages[frameNumber] = imgNumStamps(int(detectedFrame),10,0,thisImages[frameNumber])
+        for frameNumber in range(eventLength):
+            thisImages[frameNumber] = imgNumStamps(int(detectedFrame),10,0,thisImages[frameNumber])
             # thisImages[frameNumber] = imgNumStamps(int(answerKeyLines[eventNumber].split(' ')[0]),20,0,thisImages[frameNumber])
         # leave stamp code output? (seems very useful)
-            # Images.append(cv2.resize(thisImages[frameNumber],(2*115,89*2)))
-            # if frameNumber <= high and frameNumber >= low:
-            # Images2.append(cv2.resize(thisImages[frameNumber],(2*115,89*2)))
-    # makeBarHistGraphsSolo(labels,0.35,codeFrame,runName,False,False)
+            Images.append(cv2.resize(thisImages[frameNumber],(2*115,89*2)))
+            if frameNumber <= high and frameNumber >= low:
+                Images2.append(cv2.resize(thisImages[frameNumber],(2*115,89*2)))
+    makeBarHistGraphsSolo(labels,0.35,codeFrame,runName,True,True)
     txtName = runName
     txtFile = open(this_repo_path+os.path.sep+txtName+' - Results','w')
     fileContents = "".join(detectedFrames)
     txtFile.write(fileContents)
-# writeAviVideo(videoName = 'e - Full Runs',frameRate = 1,allImages = Images,openVideo = True)
-# writeAviVideo(videoName = 'e - Detection Clips',frameRate = 1,allImages = Images2,openVideo = True)
+writeAviVideo(videoName = 'e - Full Runs',frameRate = 1,allImages = Images,openVideo = True)
+writeAviVideo(videoName = 'e - Detection Clips',frameRate = 1,allImages = Images2,openVideo = True)

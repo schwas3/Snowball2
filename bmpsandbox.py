@@ -165,103 +165,62 @@ this_repo_path, this_file_name = os.path.split(this_file_path) # gets the path t
 github_path, this_repo_name = os.path.split(this_repo_path) # gets the users github folder location and the repo name
 data_repo_name = "Snowball3"
 data_repo_path = github_path + os.path.sep + data_repo_name
-data_folder_path = data_repo_path+os.path.sep+'SNOWBALL CROPPED IMAGES' + os.path.sep + 'e'+os.path.sep
-file = ''
+folder = 'd'
+subfolder = 'ambe s 0'
+file = '3.610112159_1094.052576'
+file = '3.610112159_0.426024\u2705'
+file = '3.610112159_0.426024✅'
+# print(✅)
+data_folder_path = data_repo_path+os.path.sep+'SNOWBALL CROPPED IMAGES'
+# data_folder_path += os.path.sep + folder
+# data_folder_path += os.path.sep + subfolder
 filenames = [data_folder_path+os.path.sep+file+'.bmp']
 image_path = data_folder_path+os.path.sep+file+'.bmp'
-filenames = glob.glob(data_folder_path+'*'+os.path.sep+'*.bmp')
-for filename in filenames:
-    # print(filename)
-    os.remove(filename)
+filenames = glob.glob(data_folder_path+os.path.sep+'*'+os.path.sep+'*'+'*'+os.path.sep+'*_*\u2705*.bmp')
 
 def rotate_image(image, angle):
   image_center = tuple(np.array(image.shape[1::-1]) / 2)
   rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
   result = cv2.warpAffine(image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR)
   return result
+print()
+for filename in filenames:
+    print(filename)
+    os.rename(filename,filename.replace('✅',''))
 
-
-# # Cf Pb2 (and maybe ambe pb 1?)
-# y1 = 415
-# y2 = 505
-# x1 = 333
-# x2 = 448
-# not rot
-# # Cf Pb 2
-
-
-# # # AmBe pb 0
-# y1 = 423
-# y2 = 510
-# x1 = 362
-# x2 = 472
-# rot = -4
-# # # AmBe pb 0
-
-# # control 0
-# y1 = 413
-# y2 = 498
-# x1 = 325
-# x2 = 437
-# rot = -2
-# # control 0
-
-# # control 2 DONE
-# y1 = 419
-# y2 = 504
-# x1 = 340
-# x2 = 451
-# rot = 2
-# # control 2
-
-# # control 1 DONE
-# y1 = 418
-# y2 = 506
-# x1 = 335
-# x2 = 448
-# rot = 1.5
-# # control 1
-
-# # control 3
-# y1 = 469
-# y2 = 553
-# x1 = 375
-# x2 = 484
-# rot = -.2
+# # ambe s 0
+y1 = 434
+y2 = 522
+x1 = 310
+x2 = 426
+rot = -2
 # # control 3
 
-# # control 3
-y1 = 469
-y2 = 553
-x1 = 375
-x2 = 484
-rot = -.2
-# # control 3
 scale = 4
 # read single image
-# img = cv2.imread(image_path)
-# # read single image
-# img = rotate_image(img,rot)
-# # img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-# img = img[y1:y2,x1:x2]
-# # for i in range(4):
-# #     img = cv2.line(img, (int(img.shape[1]*i/4), 0),(int(img.shape[1]*i/4), img.shape[0]), (255, 0, 0), 1, 1)
-# #     img = cv2.line(img, (0,int(img.shape[0]*i/4)),(img.shape[1],int(img.shape[0]*i/4)), (255, 0, 0), 1, 1)
+img = cv2.imread(image_path)
+# read single image
+img = rotate_image(img,rot)
+# img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+img = img[y1:y2,x1:x2]
+# for i in range(4):
+#     img = cv2.line(img, (int(img.shape[1]*i/4), 0),(int(img.shape[1]*i/4), img.shape[0]), (255, 0, 0), 1, 1)
+#     img = cv2.line(img, (0,int(img.shape[0]*i/4)),(img.shape[1],int(img.shape[0]*i/4)), (255, 0, 0), 1, 1)
+cv2.imshow('test',cv2.resize(img,(scale*(x2-x1),scale*(y2-y1))))
 # cv2.imshow('test',cv2.resize(img,(scale*(x2-x1),scale*(y2-y1))))
-# # cv2.imshow('test',cv2.resize(img,(scale*(x2-x1),scale*(y2-y1))))
-# cv2.waitKey(0)
-# cv2.destroyAllWindows
+cv2.waitKey(0)
+cv2.destroyAllWindows
 
 
 
-# make TIFF FROM BMP
+# # make TIFF FROM BMP
 # for filename in filenames:
-#     # print(filename)
+#     print(filename)
 #     img = cv2.imread(filename)
 #     img = rotate_image(img,rot)
 #     img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 #     img = img[y1:y2,x1:x2]
-#     print(filename)
+#     # print(filename)
 #     cv2.imwrite(filename.split('.bmp')[0]+'.tiff',img)
 
 
@@ -277,3 +236,7 @@ scale = 4
 # plt.subplot(122),plt.imshow(edges,cmap = 'gray')
 # plt.title('Edge Image'), plt.xticks([]), plt.yticks([])
 # plt.show()
+
+###### for filename in filenames:
+#  ##  # print(filename)
+#   ## # os.remove(filename)
