@@ -8,9 +8,9 @@ import glob
 this_file_path = os.path.realpath(__file__) # gets the path to this file including the file
 this_repo_path, this_file_name = os.path.split(this_file_path) # gets the path to the repository containing this file and the file name
 github_path, this_repo_name = os.path.split(this_repo_path) # gets the users github folder location and the repo name
-data_repo_name = "Snowball3"
+data_repo_name = "Snowball4"
 data_repo_path = github_path + os.path.sep + data_repo_name
-folder = 'c'
+folder = 'b'
 subfolder = 'control1'
 data_folder_path = data_repo_path+os.path.sep+'SNOWBALL CROPPED IMAGES'
 data_folder_path += os.path.sep + folder
@@ -27,17 +27,17 @@ global y1
 global y2
 global rot
 global scale
-x1 = 300 #0
-x2 = 500 #800
-y1 = 400 #0
-y2 = 600 #600
-rot = 0 #0
+x1 = 409 #0
+x2 = 519 #800
+y1 = 458 #0
+y2 = 540 #600
+rot = 0.6 #0
 scale = 1
 global modifier
 global index
 modifier = 1
 index = 0
-image = cv2.imread(filenames[index])
+# image = cv2.imread(filenames[index])
 
 def rotate_image(image, angle):
   image_center = tuple(np.array(image.shape[1::-1]) / 2)
@@ -51,34 +51,34 @@ def useInput(event,x,y,flags,param):
             if flags == cv2.EVENT_LBUTTONDOWN + cv2.EVENT_FLAG_SHIFTKEY + cv2.EVENT_FLAG_ALTKEY:
                 x2 += 1
             elif flags == cv2.EVENT_LBUTTONDOWN + cv2.EVENT_FLAG_CTRLKEY + cv2.EVENT_FLAG_ALTKEY:
-                x2 -= 50
+                x2 -= 10
             elif flags == cv2.EVENT_LBUTTONDOWN + cv2.EVENT_FLAG_SHIFTKEY + cv2.EVENT_FLAG_CTRLKEY + cv2.EVENT_FLAG_ALTKEY:
-                x2 += 50
+                x2 += 10
             elif flags == cv2.EVENT_LBUTTONDOWN + cv2.EVENT_FLAG_ALTKEY:
                 x2 -= 1
             elif flags == cv2.EVENT_LBUTTONDOWN + cv2.EVENT_FLAG_SHIFTKEY:
                 x1 -= 1
             elif flags == cv2.EVENT_LBUTTONDOWN + cv2.EVENT_FLAG_CTRLKEY:
-                x1 += 50
+                x1 += 10
             elif flags == cv2.EVENT_LBUTTONDOWN + cv2.EVENT_FLAG_SHIFTKEY + cv2.EVENT_FLAG_CTRLKEY:
-                x1 -= 50
+                x1 -= 10
             else:
                 x1 += 1
         elif event == cv2.EVENT_RBUTTONDOWN:
             if flags == cv2.EVENT_RBUTTONDOWN + cv2.EVENT_FLAG_SHIFTKEY + cv2.EVENT_FLAG_ALTKEY:
                 y2 += 1
             elif flags == cv2.EVENT_RBUTTONDOWN + cv2.EVENT_FLAG_CTRLKEY + cv2.EVENT_FLAG_ALTKEY:
-                y2 -= 50
+                y2 -= 10
             elif flags == cv2.EVENT_RBUTTONDOWN + cv2.EVENT_FLAG_SHIFTKEY + cv2.EVENT_FLAG_CTRLKEY + cv2.EVENT_FLAG_ALTKEY:
-                y2 += 50
+                y2 += 10
             elif flags == cv2.EVENT_RBUTTONDOWN + cv2.EVENT_FLAG_ALTKEY:
                 y2 -= 1
             elif flags == cv2.EVENT_RBUTTONDOWN + cv2.EVENT_FLAG_SHIFTKEY:
                 y1 -= 1
             elif flags == cv2.EVENT_RBUTTONDOWN + cv2.EVENT_FLAG_CTRLKEY:
-                y1 += 50
+                y1 += 10
             elif flags == cv2.EVENT_RBUTTONDOWN + cv2.EVENT_FLAG_SHIFTKEY + cv2.EVENT_FLAG_CTRLKEY:
-                y1 -= 50
+                y1 -= 10
             else:
                 y1 += 1
         elif event == cv2.EVENT_MOUSEHWHEEL:
@@ -136,7 +136,7 @@ def useInput(event,x,y,flags,param):
 #         break
 # cv2.destroyAllWindows()
 # print(x1,x2,y1,y2,rot,len(filenames))
-# x1,x2,y1,y2,rot = 322,436,428,515,0.1
+x1,x2,y1,y2,rot = 424,535,422,509,0
 
 # II = 0
 # for filename in filenames:
@@ -154,5 +154,5 @@ for filename in filenames:
     if filename.find('_0') > -1:
         print(str(II)+ ' '+filename)
         II += 1
-print(filename)
-#     os.remove(filename)
+    # print(filename)
+    os.remove(filename)

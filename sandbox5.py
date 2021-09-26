@@ -192,10 +192,10 @@ Images2 = [] # initializes the array used to store images to make a movie
 this_file_path = os.path.realpath(__file__) # gets the path to this file including the file
 this_repo_path, this_file_name = os.path.split(this_file_path) # gets the path to the repository containing this file and the file name
 github_path, this_repo_name = os.path.split(this_repo_path) # gets the users github folder location and the repo name
-data_repo_name = "Snowball3"
+data_repo_name = "Snowball4"
 data_repo_path = github_path + os.path.sep + data_repo_name
 data_folder_name = 'SNOWBALL CROPPED IMAGES'
-folder = 'c'
+folder = 'b'
 runNames = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.sep + folder + os.path.sep + '*')
 for i in range(len(runNames)):
     runNames[i] = os.path.basename(runNames[i])
@@ -293,5 +293,5 @@ for runName in runNames:
     fileContents = "".join(detectedFrames)
     txtFile.write(fileContents)
     txtFile.close()
-writeAviVideo(videoName = folder+' - Full Runs',frameRate = 1,allImages = Images,openVideo = True)
-writeAviVideo(videoName = folder+' - Detection Clips',frameRate = 1,allImages = Images2,openVideo = True)
+writeAviVideo(videoName = folder+' - Full Runs',frameRate = 1,allImages = Images,openVideo = False)
+writeAviVideo(videoName = folder+' - Detection Clips',frameRate = 1,allImages = Images2,openVideo = False)
