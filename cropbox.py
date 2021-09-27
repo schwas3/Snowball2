@@ -11,14 +11,14 @@ github_path, this_repo_name = os.path.split(this_repo_path) # gets the users git
 data_repo_name = "Snowball4"
 data_repo_path = github_path + os.path.sep + data_repo_name
 folder = 'Run11'
-subfolder = 'AmBe-side'
+subfolder = 'UBe_thick_front_blue'
 data_folder_path = data_repo_path+os.path.sep+'SNOWBALL CROPPED IMAGES'
 data_folder_path += os.path.sep + folder
 
-# filenames = glob.glob(data_folder_path+os.path.sep + subfolder+os.path.sep+'*.bmp')
+filenames = glob.glob(data_folder_path+os.path.sep + subfolder+os.path.sep+'*.bmp')
 # filenames = glob.glob(data_folder_path+os.path.sep + '*'+os.path.sep+'\u2705.bmp')
 
-filenames = glob.glob(data_folder_path+os.path.sep+'*'+os.path.sep+'*.bmp')
+# filenames = glob.glob(data_folder_path+os.path.sep+'*'+os.path.sep+'*.bmp')
 
 global img
 global image
@@ -138,7 +138,7 @@ if a == 1: # image analysis code
     cv2.destroyAllWindows()
     print(x1,x2,y1,y2,int(rot*10))
     print(len(filenames))
-A = '393 506 419 508 0'
+A = '471 592 469 559 -29'
 if a == 2: # make tiffs code
     x1,x2,y1,y2,rot = [int(i) for i in A.split()]
     rot /= 10
@@ -151,7 +151,7 @@ if a == 2: # make tiffs code
         img = rotate_image(img,rot)
         img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
         img = img[y1:y2,x1:x2]
-        cv2.imwrite(filename.split('.bmp')[0]+'.tiff',img)
+        # cv2.imwrite(filename.split('.bmp')[0]+'.tiff',img)
 if a == 3: #replace code
     for filename in filenames:
         print(filename)

@@ -196,7 +196,7 @@ github_path, this_repo_name = os.path.split(this_repo_path) # gets the users git
 data_repo_name = "Snowball5"
 data_repo_path = github_path + os.path.sep + data_repo_name
 data_folder_name = 'SNOWBALL CROPPED IMAGES'
-folder = 'c'
+folder = 'e'
 runNames = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.sep + folder + os.path.sep + '*')
 for i in range(len(runNames)):
     runNames[i] = os.path.basename(runNames[i])
@@ -301,6 +301,6 @@ for runName in runNames:
         fileContents = "".join(detectedFrames)
         txtFile.write(fileContents)
         txtFile.close()
-writeAviVideo(videoName = folder+' - Full Runs',frameRate = 1,allImages = Images,openVideo = True)
+writeAviVideo(videoName = 'Full Runs - '+folder,frameRate = 1,allImages = Images,openVideo = True)
 # writeAviVideo(videoName = folder+' - Full Runs 2 of 2',frameRate = 1,allImages = Images1,openVideo = False)
-writeAviVideo(videoName = folder+' - Detection Clips',frameRate = 1,allImages = Images2,openVideo = False)
+writeAviVideo(videoName ='Detection Clips - '+folder,frameRate = 1,allImages = Images2,openVideo = False)
