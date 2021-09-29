@@ -134,7 +134,7 @@ def extractForegroundMask(reverse: bool, mustExistInPreviousFrames: bool,static:
 def overlayFrames(frame1,frame2): # returns the composite frame of two frames
     return np.multiply(frame1,np.divide(frame2,255))
 def getEventsFromRun(runFolder): # str - name of grou p, str array - names of runs, str 2d array - timestamps in runs, str 2d array - filenames in runs
-    filename_RFG = glob.glob(runFolder + os.path.sep + '*.tiff')
+    filename_RFG = glob.glob(runFolder + os.path.sep + '*.tiff') # make sure is tiff and not .tif possible source of error
     groupName_RFG = os.path.basename(runFolder)
     runNames_RFG = []
     runImages_RFG = []
@@ -149,7 +149,8 @@ def getEventsFromRun(runFolder): # str - name of grou p, str array - names of ru
             runTimestamps_RFG.append([])
             runImages_RFG.append([])
         runTimestamps_RFG[-1].append(timestamp_RFG)
-        runImages_RFG[-1].append(np.array(Image.open(i)))
+        runImages_RFG[-1].append(cv2.imread(i,0))
+        # runImages_RFG[-1].append(np.array(Image.open(i)))
     return groupName_RFG, runNames_RFG, runTimestamps_RFG, runImages_RFG
 def concatFrames(image1,image2,axis):
     return np.concatenate((image1,image2),axis)
@@ -193,10 +194,10 @@ Images2 = [] # initializes the array used to store images to make a movie
 this_file_path = os.path.realpath(__file__) # gets the path to this file including the file
 this_repo_path, this_file_name = os.path.split(this_file_path) # gets the path to the repository containing this file and the file name
 github_path, this_repo_name = os.path.split(this_repo_path) # gets the users github folder location and the repo name
-data_repo_name = "Snowball5"
+data_repo_name = "Snowball4"
 data_repo_path = github_path + os.path.sep + data_repo_name
 data_folder_name = 'SNOWBALL CROPPED IMAGES'
-folder = 'e'
+folder = 'Run12'
 runNames = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.sep + folder + os.path.sep + '*')
 for i in range(len(runNames)):
     runNames[i] = os.path.basename(runNames[i])
@@ -263,7 +264,7 @@ for runName in runNames:
         # detectedFrames.append(str(detectedFrame)) #+'-'+answerKeyLines[eventNumber])
         codeFrame.append(detectedFrame)
         # keyFrame.append(int(answerKeyLines[eventNumber].split(' ')[0]))
-        # labels.append(str(eventNumber+1))
+        labels.append(str(eventNumber+1))
         theseImages = concatFrames(padEvent(frames),padEvent(thisEvent1),2)
         tStamp = []
         for timestamp in thisEventFrameTimestamps:
@@ -294,13 +295,13 @@ for runName in runNames:
             Images.append(thisImages[frameNumber])
             if frameNumber <= high and frameNumber >= low:
                 Images2.append(thisImages[frameNumber])
-    makeBarHistGraphsSolo(labels,0.35,codeFrame,runName,False,False)
-    if False:
+    makeBarHistGraphsSolo(labels,0.35,codeFrame,runName,True,True)
+    if True:
         txtName = runName
         txtFile = open(this_repo_path+os.path.sep+txtName+' - Results','w')
         fileContents = "".join(detectedFrames)
         txtFile.write(fileContents)
         txtFile.close()
-writeAviVideo(videoName = 'Full Runs - '+folder,frameRate = 1,allImages = Images,openVideo = True)
+writeAviVideo(videoName = 'Full Runs - '+folder,frameRate = 1,allImages = Images,openVideo = False)
 # writeAviVideo(videoName = folder+' - Full Runs 2 of 2',frameRate = 1,allImages = Images1,openVideo = False)
 writeAviVideo(videoName ='Detection Clips - '+folder,frameRate = 1,allImages = Images2,openVideo = False)

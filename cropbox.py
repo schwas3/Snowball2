@@ -10,7 +10,7 @@ this_repo_path, this_file_name = os.path.split(this_file_path) # gets the path t
 github_path, this_repo_name = os.path.split(this_repo_path) # gets the users github folder location and the repo name
 data_repo_name = "Snowball4"
 data_repo_path = github_path + os.path.sep + data_repo_name
-folder = 'Run11'
+folder = 'run11'
 subfolder = 'UBe_thick_front_blue'
 data_folder_path = data_repo_path+os.path.sep+'SNOWBALL CROPPED IMAGES'
 data_folder_path += os.path.sep + folder
@@ -20,24 +20,13 @@ filenames = glob.glob(data_folder_path+os.path.sep + subfolder+os.path.sep+'*.bm
 
 # filenames = glob.glob(data_folder_path+os.path.sep+'*'+os.path.sep+'*.bmp')
 
-global img
-global image
-global x1
-global x2
-global y1
-global y2
-global rot
-global scale
-x1 = 390 #0
-x2 = 515 #800
-y1 = 334 #0
-y2 = 429 #600
-rot = 0 #0
-scale = 1
-global modifier
-global index
-modifier = 1
-index = 0
+global img,image,x1,x2,y1,y2,rot,scale,modifier,index
+scale,modifier,index = 1,1,0
+image = np.zeros_like(cv2.imread(filenames[index]))
+# modifier = 1
+# index = 0
+# image = cv2.imread(filenames[index])
+
 def rotate_image(image, angle):
   image_center = tuple(np.array(image.shape[1::-1]) / 2)
   rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
@@ -124,7 +113,10 @@ def useInput(event,x,y,flags,param):
         cv2.imshow('original',cv2.resize(cv2.rectangle(img,(x1-1,y1-1),(x2+1,y2+1),(255,0,0),1)[y1-20:y2+20,x1-20:x2+20],(int(scale*(x2-x1+40)),int(scale*(y2-y1+40)))))
         # return np.array([[0,0],[]])
     # return 
-a = 1
+a = 4
+A = '442 556 351 436 -82'
+x1,x2,y1,y2,rot = [int(i) for i in A.split()]
+rot /= 10
 if a == 1: # image analysis code
     cv2.namedWindow('original')
     image = cv2.imread(filenames[index])
@@ -138,20 +130,23 @@ if a == 1: # image analysis code
     cv2.destroyAllWindows()
     print(x1,x2,y1,y2,int(rot*10))
     print(len(filenames))
-A = '471 592 469 559 -29'
 if a == 2: # make tiffs code
-    x1,x2,y1,y2,rot = [int(i) for i in A.split()]
-    rot /= 10
     II = 0
     for filename in filenames:
         if filename.find('_0') > -1:
             print(str(II) + ' '+filename)
             II += 1
-        img = cv2.imread(filename)
-        img = rotate_image(img,rot)
-        img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-        img = img[y1:y2,x1:x2]
-        # cv2.imwrite(filename.split('.bmp')[0]+'.tiff',img)
+        img = image
+        try:
+            img = cv2.imread(filename)
+            img = rotate_image(img,rot)
+            img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+            img = img[y1:y2,x1:x2]
+            cv2.imwrite(filename.split('.bmp')[0]+'.tiff',img)
+        except:
+            img = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
+            img = img[y1:y2,x1:x2]
+            cv2.imwrite(filename.split('.bmp')[0]+'X.tiff',img)
 if a == 3: #replace code
     for filename in filenames:
         print(filename)
@@ -163,4 +158,4 @@ if a == 4: # destroy bmp code
             print(str(II)+ ' '+filename)
             II += 1
         # print(filename)
-        # os.remove(filename)
+        os.remove(filename)
