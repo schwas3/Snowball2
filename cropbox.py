@@ -10,8 +10,8 @@ this_repo_path, this_file_name = os.path.split(this_file_path) # gets the path t
 github_path, this_repo_name = os.path.split(this_repo_path) # gets the users github folder location and the repo name
 data_repo_name = "Snowball4"
 data_repo_path = github_path + os.path.sep + data_repo_name
-folder = 'run11'
-subfolder = 'UBe_thick_front_blue'
+folder = 'test'
+subfolder = 'test1'
 data_folder_path = data_repo_path+os.path.sep+'SNOWBALL CROPPED IMAGES'
 data_folder_path += os.path.sep + folder
 
@@ -110,11 +110,12 @@ def useInput(event,x,y,flags,param):
             index = np.min([index,len(filenames)-1])
             image = cv2.imread(filenames[index])
         img = rotate_image(image,rot)
+        # cv2.imshow('original',cv2.resize(img,(int(scale*(x2-x1+40)),int(scale*(y2-y1+40)))))
         cv2.imshow('original',cv2.resize(cv2.rectangle(img,(x1-1,y1-1),(x2+1,y2+1),(255,0,0),1)[y1-20:y2+20,x1-20:x2+20],(int(scale*(x2-x1+40)),int(scale*(y2-y1+40)))))
         # return np.array([[0,0],[]])
     # return 
-a = 4
-A = '442 556 351 436 -82'
+a = 1
+A = '532 646 427 506 1'
 x1,x2,y1,y2,rot = [int(i) for i in A.split()]
 rot /= 10
 if a == 1: # image analysis code
@@ -124,6 +125,7 @@ if a == 1: # image analysis code
     while (1):
         # img = cv2.rectangle(img,(x1-1,y1-1),(x2+1,y2+1),(255,0,0),1)
         img = rotate_image(image,rot)
+        # cv2.imshow('original',cv2.resize(img,(int(scale*(x2-x1+40)),int(scale*(y2-y1+40)))))
         cv2.imshow('original',cv2.resize(cv2.rectangle(img,(x1-1,y1-1),(x2+1,y2+1),(255,0,0),1)[y1-20:y2+20,x1-20:x2+20],(int(scale*(x2-x1+40)),int(scale*(y2-y1+40)))))
         if cv2.waitKey(0):
             break
@@ -149,8 +151,10 @@ if a == 2: # make tiffs code
             cv2.imwrite(filename.split('.bmp')[0]+'X.tiff',img)
 if a == 3: #replace code
     for filename in filenames:
-        print(filename)
-        os.rename(filename,filename.replace(' .tiff','.tiff'))
+        if filename != filename.split(folder)[0]+folder+filename.split(folder)[1].replace(' ',''):
+            print(filename)
+            print(filename.split(folder)[0]+folder+filename.split(folder)[1].replace(' ',''))
+        os.rename(filename,filename.split(folder)[0]+folder+filename.split(folder)[1].replace(' ',''))
 if a == 4: # destroy bmp code
     II = 0
     for filename in filenames:

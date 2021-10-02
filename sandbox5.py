@@ -4,18 +4,16 @@ import numpy as np
 import time as t1
 import matplotlib.pyplot as plt
 import os
-import yaml
 import cv2
-from PIL import Image
 import glob
 from os import read, startfile, write
 from os.path import exists
 
-def makeBarHistGraphsSolo(labels,width,barData,title,makeBar: bool,makeHist:bool):
+def makeBarHistGraphsSolo(labels,width,barData,title,makeBar: bool,makeHist:bool,folderH):
     if makeBar:
         x = np.arange(len(labels))
         fig, ax = plt.subplots(figsize=(10,5.63))
-        rects = ax.bar(x,barData,width,label = 'Code Output ( (Mean = '+str(round(np.mean(barData),2))+', Std = '+str(round(np.std(barData),2))+')')
+        rects = ax.bar(x,barData,width,label = 'Code Output ( (Mean = '+str(round(np.mean(barData),2))+', Std = '+str(round(np.std(barData),2))+', N = '+str(len(barData))+')')
         ax.set_ylabel('Detection Frame',fontsize = 10)
         ax.set_xlabel('Event Number',fontsize = 10)
         ax.set_title(title,fontsize = 12)
@@ -24,20 +22,22 @@ def makeBarHistGraphsSolo(labels,width,barData,title,makeBar: bool,makeHist:bool
         ax.legend(fontsize = 8)
         ax.bar_label(rects, padding=2, fontsize = 6)
         fig.tight_layout()
-        suffix = 1
+        plt.ylim(0,215)
+        # suffix = 1
         # while exists(str(title)+' '+str(suffix)+'.png'):
         #     suffix += 1
-        plt.savefig(str(title)+' '+str(suffix)+'.png')
+        plt.savefig(folderH+str(title)+'.png')
     if makeHist:
         fig = plt.figure(figsize=(10,5.63))
         plt.title(title)
-        plt.hist(barData,bins=8,alpha=0.5,rwidth=0.9)
-        plt.xlabel('Detection Frame'+' (Mean = '+str(round(np.mean(barData),2))+', Std = '+str(round(np.std(barData),2))+')')
+        plt.hist(barData,bins=25,range=(1,201),alpha=0.5,rwidth=0.9)
+        plt.xlabel('Detection Frame'+' (Mean = '+str(round(np.mean(barData),2))+', Std = '+str(round(np.std(barData),2))+', N = '+str(len(barData))+')')
         plt.ylabel('Frequency')
-        suffix = 1
+        # suffix = 1
         # while exists(str(title)+' hist '+str(suffix)+'.png'):
         #     suffix += 1
-        plt.savefig(str(title)+' hist '+str(suffix)+'.png')
+        plt.xlim(0,210)
+        plt.savefig(folderH+str(title)+' hist.png')
 def makeBarGraph(labels,width,barLabels,barData,title,yLabel,xLabel, makeBar: bool, makeHist: bool):
     if makeBar:
         x = np.arange(len(labels))  # the label locations
@@ -140,6 +140,7 @@ def getEventsFromRun(runFolder): # str - name of grou p, str array - names of ru
     runImages_RFG = []
     runTimestamps_RFG = []
     currRunName_RFG = ''
+    valid_RFG = []
     for i in filename_RFG:
         tif_RFG = os.path.basename(i)
         runName_RFG, timestamp_RFG = tif_RFG.replace('.tiff','').replace('.tif','').split('_')
@@ -147,11 +148,13 @@ def getEventsFromRun(runFolder): # str - name of grou p, str array - names of ru
             currRunName_RFG = runName_RFG
             runNames_RFG.append(runName_RFG)
             runTimestamps_RFG.append([])
+            valid_RFG.append(True)
             runImages_RFG.append([])
-        runTimestamps_RFG[-1].append(timestamp_RFG)
         runImages_RFG[-1].append(cv2.imread(i,0))
-        # runImages_RFG[-1].append(np.array(Image.open(i)))
-    return groupName_RFG, runNames_RFG, runTimestamps_RFG, runImages_RFG
+        if timestamp_RFG[-1] == 'X':
+            valid_RFG[-1] = False
+        runTimestamps_RFG[-1].append(timestamp_RFG.replace('X',''))
+    return groupName_RFG, runNames_RFG, runTimestamps_RFG, runImages_RFG, valid_RFG
 def concatFrames(image1,image2,axis):
     return np.concatenate((image1,image2),axis)
 def imgNumStamps(frameNum, loc1, loc2, origGrid): # this def includes a frame stamp at [loc1][loc2] on origGrid with frameNum works with '-' character as well
@@ -172,12 +175,17 @@ def imgNumStamps(frameNum, loc1, loc2, origGrid): # this def includes a frame st
         for j in range(1+4*len(frameNums)):
             origGrid[loc1+i][loc2+j]=255*grid[i][j]
     return origGrid
-def writeAviVideo(videoName, frameRate, allImages, openVideo: bool): # creates a video with videoname, frame_rate, using "images", and opens the video based on a boolean
+def writeAviVideo(videoName, frameRate, allImages, openVideo: bool,color: bool): # creates a video with videoname, frame_rate, using "images", and opens the video based on a boolean
     images = allImages
     images = np.array(images).astype(np.uint8)
-    height, width = images[0].shape
-    size = (width,height)
-    out = cv2.VideoWriter(videoName+'.avi',cv2.VideoWriter_fourcc(*'DIVX'), frameRate, size, isColor=0) # isColor = 0 can be replaced by changing line (this line + 2 (or 3) to out.write(cv2.merge([imgs[i],imgs[i],imgs[i]]))
+    if not color:
+        height, width = images[0].shape
+        size = (width,height)
+        out = cv2.VideoWriter(videoName+'.avi',cv2.VideoWriter_fourcc(*'DIVX'), frameRate, size, isColor=0) # isColor = 0 can be replaced by changing line (this line + 2 (or 3) to out.write(cv2.merge([imgs[i],imgs[i],imgs[i]]))
+    else:
+        height, width,layers = images[0].shape
+        size = (width,height)
+        out = cv2.VideoWriter(videoName+'.avi',cv2.VideoWriter_fourcc(*'DIVX'), frameRate, size) # isColor = 0 can be replaced by changing line (this line + 2 (or 3) to out.write(cv2.merge([imgs[i],imgs[i],imgs[i]]))
     for i in range(len(images)):
         out.write(images[i])
     out.release()
@@ -194,22 +202,29 @@ Images2 = [] # initializes the array used to store images to make a movie
 this_file_path = os.path.realpath(__file__) # gets the path to this file including the file
 this_repo_path, this_file_name = os.path.split(this_file_path) # gets the path to the repository containing this file and the file name
 github_path, this_repo_name = os.path.split(this_repo_path) # gets the users github folder location and the repo name
-data_repo_name = "Snowball4"
+data_repo_name = "Snowball7"
 data_repo_path = github_path + os.path.sep + data_repo_name
 data_folder_name = 'SNOWBALL CROPPED IMAGES'
-folder = 'Run12'
+folder = 'run10'
+try: 
+    os.mkdir(this_repo_path+os.path.sep+folder) 
+except OSError as error: 
+    print(error)  
 runNames = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.sep + folder + os.path.sep + '*')
 for i in range(len(runNames)):
     runNames[i] = os.path.basename(runNames[i])
 # print(runNames)
-# runNames = ['control0'] # the short name of the folder containing images (tif files)
+# runNames = ['UBe_thick_front_blue'] # the short name of the folder containing images (tif files)
+notesContent = []
 for runName in runNames:
+    runEventsNoteContent = runName+', Invalid Events: '
+    invalidEventsInRun = ''
     detectedFrames = []
     data_folder_name = 'SNOWBALL CROPPED IMAGES'
     data_folder_name += os.path.sep + folder
     data_folder_name += os.path.sep + runName
     data_folder_path = data_repo_path + os.path.sep + data_folder_name # THIS LINE MUST BE CORRECT EVERYTHING ELSE IS NOT ESSENTIAL
-    runName, eventPrefixes, eventFrameTimestamps, runEventImages = getEventsFromRun(data_folder_path) # calls getRunsFromGroup data_folder_path MUST BE A COMPLETE PATH, ALL
+    runName, eventPrefixes, eventFrameTimestamps, runEventImages, validRunEvents = getEventsFromRun(data_folder_path) # calls getRunsFromGroup data_folder_path MUST BE A COMPLETE PATH, ALL
     print(str(runName)+'/'+str(len(eventPrefixes)))
     allEventsInFolder = True
     if allEventsInFolder:
@@ -227,17 +242,21 @@ for runName in runNames:
     codeFrame = []
     keyFrame = []
     for eventNumber in eventsOfInterest: # iterates over all runNumber in runsOfInterest (note: runNumber is 0-indexed)
+        eventLabel = str(eventNumber+1)
+        if not validRunEvents[eventNumber]:
+            runEventsNoteContent+= eventLabel+','
+            eventLabel = '('+eventLabel+')'
         thisEventImages = runEventImages[eventNumber]
         thisEventFrameTimestamps = eventFrameTimestamps[eventNumber]
         eventLength = len(thisEventImages)
-        if thisEventFrameTimestamps[0][0] == '0':
+        if thisEventFrameTimestamps[0][1] == '.':
             thisEventImages.append(thisEventImages.pop(0)) # the 0-th frame is removed and added to the end of the event images
             thisEventFrameTimestamps.append(thisEventFrameTimestamps.pop(0)) # the 0-th frame is removed and added to the end of the event images
         frames = []
         for frameNumber in range(eventLength):
             frames.append(thisEventImages[frameNumber])
         thisEventImages = normalizePixelValues(thisEventImages,30,225) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
-        print(eventNumber)
+        print(eventLabel)
         # do stuff here
         # thisEvent1 = extractForegroundMask(False,True,True,thisEventImages, 50,9,0,0)
         thisEvent3 = extractForegroundMask(False,True,True,thisEventImages,50,100,35,0)
@@ -264,7 +283,7 @@ for runName in runNames:
         # detectedFrames.append(str(detectedFrame)) #+'-'+answerKeyLines[eventNumber])
         codeFrame.append(detectedFrame)
         # keyFrame.append(int(answerKeyLines[eventNumber].split(' ')[0]))
-        labels.append(str(eventNumber+1))
+        labels.append(eventLabel)
         theseImages = concatFrames(padEvent(frames),padEvent(thisEvent1),2)
         tStamp = []
         for timestamp in thisEventFrameTimestamps:
@@ -295,13 +314,25 @@ for runName in runNames:
             Images.append(thisImages[frameNumber])
             if frameNumber <= high and frameNumber >= low:
                 Images2.append(thisImages[frameNumber])
-    makeBarHistGraphsSolo(labels,0.35,codeFrame,runName,True,True)
+    makeBarHistGraphsSolo(labels,0.35,codeFrame,runName,True,True,folder+os.path.sep)
     if True:
         txtName = runName
-        txtFile = open(this_repo_path+os.path.sep+txtName+' - Results','w')
+        txtFile = open(this_repo_path+os.path.sep+folder+os.path.sep+txtName+' - Results.txt','w')
         fileContents = "".join(detectedFrames)
         txtFile.write(fileContents)
         txtFile.close()
-writeAviVideo(videoName = 'Full Runs - '+folder,frameRate = 1,allImages = Images,openVideo = False)
+    notesContent.append(runEventsNoteContent[:-1]+'\n')
+writeAviVideo(videoName = folder+os.path.sep+'Full Runs - '+folder,frameRate = 1,allImages = Images,openVideo = False,color = False)
+if not exists(this_repo_path+os.path.sep+folder+os.path.sep+'eventNotes - '+folder+'.txt'):
+    txtFile = open(this_repo_path+os.path.sep+folder+os.path.sep+'eventNotes - '+folder+'.txt','w')
+    fileContents = "".join(notesContent)
+    txtFile.write(fileContents)
+    txtFile.close()
 # writeAviVideo(videoName = folder+' - Full Runs 2 of 2',frameRate = 1,allImages = Images1,openVideo = False)
-writeAviVideo(videoName ='Detection Clips - '+folder,frameRate = 1,allImages = Images2,openVideo = False)
+writeAviVideo(videoName =folder+os.path.sep+'Detection Clips - '+folder,frameRate = 1,allImages = Images2,openVideo = False,color = False)
+nextFilenames = glob.glob(this_repo_path+os.path.sep+folder+os.path.sep+'*.png')
+Images = []
+for filename in nextFilenames:
+    Images.append(cv2.imread(filename.replace(' hist','')))
+    Images.append(cv2.imread(filename))
+writeAviVideo(videoName =folder+os.path.sep+ 'Bar Graphs and Histograms Video - '+folder,frameRate = 1/30,allImages= Images,openVideo = False,color = True)
