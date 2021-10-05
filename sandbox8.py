@@ -8,6 +8,9 @@ import cv2
 import glob
 from os import read, startfile, write
 from os.path import exists
+from numpy.core.numeric import zeros_like
+
+from numpy.lib.function_base import rot90
 
 def makeBarHistGraphsSolo(labels,width,barData,title,makeBar: bool,makeHist:bool,folderH):
     if makeBar:
@@ -249,9 +252,11 @@ for runName in runNames:
             thisEventImages.append(thisEventImages.pop(0)) # the 0-th frame is removed and added to the end of the event images
             thisEventFrameTimestamps.append(thisEventFrameTimestamps.pop(0)) # the 0-th frame is removed and added to the end of the event images
         frames = []
+        thisEventImages = normalizePixelValues(thisEventImages,30,225) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
+        Images3.append(np.zeros_like(thisEventImages[0]))
         for frameNumber in range(eventLength):
             frames.append(thisEventImages[frameNumber])
-        thisEventImages = normalizePixelValues(thisEventImages,30,225) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
+        # thisEventImages = normalizePixelValues(thisEventImages,30,225) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
         print(eventLabel)
         # do stuff here
         # thisEvent1 = extractForegroundMask(False,True,True,thisEventImages, 50,9,0,0)
@@ -284,7 +289,7 @@ for runName in runNames:
         tStamp = []
         for timestamp in thisEventFrameTimestamps:
             tStamp.append(timestamp.replace('.',''))
-        # # below is purely comparison based
+        # # below is purely comparison basedyy
         low = np.max([0,detectedFrame - 5])
         high = np.min([eventLength,detectedFrame + 5])
         # low = 0
@@ -309,42 +314,71 @@ for runName in runNames:
             #     Images1.append(cv2.resize(thisImages[frameNumber],(256,96)))
             # else:
             Images.append(thisImages[frameNumber])
-            if frameNumber <= high and frameNumber >= low:
-                Images2.append(thisImages[frameNumber])
+            if frameNumber <= high and frameNumber >= detectedFrame:
+                pass
                 # Images4.append(thisImages[frameNumber])
-            if frameNumber == detectedFrame:
-                Images3.append(thisImages[frameNumber])
-            if frameNumber == detectedFrame+2:
-                Images4.append(thisImages[frameNumber])
-                # pass
+                # Images4.append(thisImages[frameNumber])
+            # if frameNumber == detectedFrame + 2:
+            # Images3[eventNumber]= np.add(Images3[eventNumber],np.divide(thisImages[frameNumber],255))
+            Images3[eventNumber]= thisImages[frameNumber]
+            if frameNumber < 25:
+                Images4.append(frames[frameNumber])
+            if frameNumber == eventLength - 1:
+                # Images4.append(thisImages[frameNumber])
+                pass
     makeBarHistGraphsSolo(labels,0.35,codeFrame,runName,False,False,folder+os.path.sep)
     newImage = np.zeros_like(Images3[0])
     newImage1 = np.zeros_like(Images4[0])
     for i in range(len(Images3)):
         # cv2.imwrite(this_repo_path+os.path.sep+'sandboxFolder'+os.path.sep+str(i+1)+'.jpg',Images3[i])
         newImage = np.add(newImage,np.divide(Images3[i],255))
-    # newImage = np.divide(newImage,np.max(newImage)/255)
+    # for i in range(len(Images3)):
+    #     cv2.imwrite(this_repo_path+os.path.sep+'sandboxFolder'+os.path.sep+str(i+1)+'.jpg',Images3[i])
+    #     weighted = np.multiply(Images3[i],[np.rot90([np.arange(len(Images3[i]))]*len(Images3[i][0]),3),[np.arange(len(Images3[i][0]))]*len(Images3[i])])
+    #     x,y=np.sum(weighted[0])/np.sum(Images3[i]),np.sum(weighted[1])/np.sum(Images3[i])
+    #     print(x,y)
+    #     newImage[int(x)][int(y)]+=1
+    for i in range(len(Images3)):
+        newImage[0][2*i] = i
+        newImage[1][2*i] = i
+    newImage = np.divide(newImage,len(Images3)/255)
     for i in range(len(Images4)):
-        cv2.imwrite(this_repo_path+os.path.sep+'sandboxFolder'+os.path.sep+str(i+1)+'.jpg',Images4[i])
+        # cv2.imwrite(this_repo_path+os.path.sep+'sandboxFolder'+os.path.sep+str(i+1)+'.jpg',Images4[i])
+        # weighted = np.multiply(Images4[i],[np.rot90([np.arange(len(Images4[i]))]*len(Images4[i][0]),3),[np.arange(len(Images4[i][0]))]*len(Images4[i])])
+        # x,y=np.sum(weighted[0])/np.sum(Images4[i]),np.sum(weighted[1])/np.sum(Images4[i])
+        # print(x,y)
+        # newImage1[int(x)][int(y)]+=1
         newImage1 = np.add(newImage1,np.divide(Images4[i],255))
     newImage1 = np.divide(newImage1,np.max(newImage1)/255)
+    newImage1 = cv2.merge([np.divide(newImage1,1),newImage1,newImage1])#np.zeros_like(newImage1),np.zeros_like(newImage1)])
+    newImage2 = cv2.merge([np.zeros_like(newImage),0*newImage,newImage])
+    newImage = cv2.merge([0*np.mod(np.subtract(255,newImage),255),1/8*np.mod(np.subtract(255,newImage),255),np.mod(0*np.subtract(255,newImage),255)])
+    newImage = np.add(np.divide(newImage,1),np.divide(newImage2,1))
+    newImage = np.add(np.divide(newImage,5/4),np.divide(newImage1,4))
+    newImage = np.divide(newImage,np.max(newImage)/255)
     newImageShape = newImage.shape
     newImage1Shape = newImage1.shape
-    SCALE = 8
-    # newImage = cv2.resize(newImage,(SCALE*newImageShape[1],SCALE*newImageShape[0]))
+    SCALE = 4
+    newImage = cv2.resize(newImage,(SCALE*newImageShape[1],SCALE*newImageShape[0]))
     newImage1 = cv2.resize(newImage1,(SCALE*newImage1Shape[1],SCALE*newImage1Shape[0]))
     newImage = np.array(newImage).astype(np.uint8)
     newImage1 = np.array(newImage1).astype(np.uint8)
-    while True:
-        cv2.imshow('test',newImage)
-        if cv2.waitKey(0):
-            cv2.destroyAllWindows()
-            break
-    while True:
-        cv2.imshow('test1',newImage1)
-        if cv2.waitKey(0):
-            cv2.destroyAllWindows()
-            break
+    # while True:
+    #     cv2.imshow('test', concatFrames(newImage,newImage1,1))
+    #     if cv2.waitKey(0):
+    #         cv2.destroyAllWindows()
+    #         break
+    # while True:
+    #     cv2.imshow('test1',newImage)
+    #     if cv2.waitKey(0):
+    #         cv2.destroyAllWindows()
+    #         break
+    cv2.imwrite(folder+' - ' + runNames[0]+'0.jpg',newImage)
+    # while True:
+    #     cv2.imshow('test1',newImage1)
+    #     if cv2.waitKey(0):
+    #         cv2.destroyAllWindows()
+    #         break
     if False:
         txtName = runName
         txtFile = open(this_repo_path+os.path.sep+folder+os.path.sep+txtName+' - Results.txt','w')

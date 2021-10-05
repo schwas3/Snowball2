@@ -1,2 +1,5 @@
 AmBe_Pb, Invalid Events: 61
+2,6,7,48 - snowball begins forming before start of video
 control, Invalid Events:
+2 snowball begins before start
+26 - code did not anticipate file naming convention used in this case - code corrected (this may not be an appartent issue anymore if the code change worked)

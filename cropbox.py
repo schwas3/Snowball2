@@ -8,14 +8,14 @@ import glob
 this_file_path = os.path.realpath(__file__) # gets the path to this file including the file
 this_repo_path, this_file_name = os.path.split(this_file_path) # gets the path to the repository containing this file and the file name
 github_path, this_repo_name = os.path.split(this_repo_path) # gets the users github folder location and the repo name
-data_repo_name = "Snowball4"
+data_repo_name = "Snowball7"
 data_repo_path = github_path + os.path.sep + data_repo_name
-folder = 'test'
-subfolder = 'test1'
+folder = 'b'
+subfolder = 'ambe0'
 data_folder_path = data_repo_path+os.path.sep+'SNOWBALL CROPPED IMAGES'
 data_folder_path += os.path.sep + folder
 
-filenames = glob.glob(data_folder_path+os.path.sep + subfolder+os.path.sep+'*.bmp')
+filenames = glob.glob(data_folder_path+os.path.sep + subfolder+os.path.sep+'*.tiff')
 # filenames = glob.glob(data_folder_path+os.path.sep + '*'+os.path.sep+'\u2705.bmp')
 
 # filenames = glob.glob(data_folder_path+os.path.sep+'*'+os.path.sep+'*.bmp')
@@ -111,11 +111,12 @@ def useInput(event,x,y,flags,param):
             image = cv2.imread(filenames[index])
         img = rotate_image(image,rot)
         # cv2.imshow('original',cv2.resize(img,(int(scale*(x2-x1+40)),int(scale*(y2-y1+40)))))
-        cv2.imshow('original',cv2.resize(cv2.rectangle(img,(x1-1,y1-1),(x2+1,y2+1),(255,0,0),1)[y1-20:y2+20,x1-20:x2+20],(int(scale*(x2-x1+40)),int(scale*(y2-y1+40)))))
+        cv2.imshow('original',cv2.resize(cv2.rectangle(img,(np.min([0,x1-1]),np.min([0,y1-1])),(x2+1,y2+1),(255,0,0),1)[np.max([0,y1-20]):y2+20,np.max([0,x1-20]):x2+20],(int(scale*(x2-x1+40)),int(scale*(y2-y1+40)))))
+        # cv2.imshow('original',cv2.resize(cv2.rectangle(img,(x1-1,y1-1),(x2+1,y2+1),(255,0,0),1)[y1-20:y2+20,x1-20:x2+20],(int(scale*(x2-x1+40)),int(scale*(y2-y1+40)))))
         # return np.array([[0,0],[]])
     # return 
-a = 1
-A = '532 646 427 506 1'
+a = 2
+A = '0 110 0 85 0'
 x1,x2,y1,y2,rot = [int(i) for i in A.split()]
 rot /= 10
 if a == 1: # image analysis code
@@ -126,7 +127,7 @@ if a == 1: # image analysis code
         # img = cv2.rectangle(img,(x1-1,y1-1),(x2+1,y2+1),(255,0,0),1)
         img = rotate_image(image,rot)
         # cv2.imshow('original',cv2.resize(img,(int(scale*(x2-x1+40)),int(scale*(y2-y1+40)))))
-        cv2.imshow('original',cv2.resize(cv2.rectangle(img,(x1-1,y1-1),(x2+1,y2+1),(255,0,0),1)[y1-20:y2+20,x1-20:x2+20],(int(scale*(x2-x1+40)),int(scale*(y2-y1+40)))))
+        cv2.imshow('original',cv2.resize(cv2.rectangle(img,(np.min([0,x1-1]),np.min([0,y1-1])),(x2+1,y2+1),(255,0,0),1)[np.max([0,y1-20]):y2+20,np.max([0,x1-20]):x2+20],(int(scale*(x2-x1+40)),int(scale*(y2-y1+40)))))
         if cv2.waitKey(0):
             break
     cv2.destroyAllWindows()
@@ -141,10 +142,10 @@ if a == 2: # make tiffs code
         img = image
         try:
             img = cv2.imread(filename)
-            img = rotate_image(img,rot)
-            img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+            # img = rotate_image(img,rot)
+            # img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
             img = img[y1:y2,x1:x2]
-            cv2.imwrite(filename.split('.bmp')[0]+'.tiff',img)
+            cv2.imwrite(filename,img)
         except:
             img = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
             img = img[y1:y2,x1:x2]

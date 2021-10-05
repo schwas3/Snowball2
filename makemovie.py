@@ -23,7 +23,7 @@ Images = [] # initializes the array used to store images to make a movie
 this_file_path = os.path.realpath(__file__) # gets the path to this file including the file
 this_repo_path, this_file_name = os.path.split(this_file_path) # gets the path to the repository containing this file and the file name
 github_path, this_repo_name = os.path.split(this_repo_path) # gets the users github folder location and the repo name
-Folder = 'run12'
+Folder = 'run13'
 filenames = glob.glob(this_repo_path + os.path.sep + Folder +os.path.sep+'*hist.png')
 # filenames = glob.glob(this_repo_path + os.path.sep + '*'+os.path.sep+ Folder +os.path.sep+'*.png')
 for filename in filenames:
