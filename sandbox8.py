@@ -1,5 +1,6 @@
  #!~/.anaconda3/bin/python
 import math
+from PIL.Image import new
 import numpy as np
 import time as t1
 import matplotlib.pyplot as plt
@@ -203,7 +204,7 @@ Images2 = [] # initializes the array used to store images to make a movie
 this_file_path = os.path.realpath(__file__) # gets the path to this file including the file
 this_repo_path, this_file_name = os.path.split(this_file_path) # gets the path to the repository containing this file and the file name
 github_path, this_repo_name = os.path.split(this_repo_path) # gets the users github folder location and the repo name
-data_repo_name = "Snowball7"
+data_repo_name = "Snowball8"
 data_repo_path = github_path + os.path.sep + data_repo_name
 data_folder_name = 'SNOWBALL CROPPED IMAGES'
 folder = 'e'
@@ -211,7 +212,7 @@ runNames = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.se
 for i in range(len(runNames)):
     runNames[i] = os.path.basename(runNames[i])
 # print(runNames)
-runNames = ['Cf Pb 2'] # the short name of the folder containing images (tif files)
+runNames = ['control 1'] # the short name of the folder containing images (tif files)
 notesContent = []
 for runName in runNames:
     Images3 = []
@@ -285,7 +286,7 @@ for runName in runNames:
         codeFrame.append(detectedFrame)
         # keyFrame.append(int(answerKeyLines[eventNumber].split(' ')[0]))
         labels.append(eventLabel)
-        theseImages = thisEvent1
+        theseImages = thisEvent2
         tStamp = []
         for timestamp in thisEventFrameTimestamps:
             tStamp.append(timestamp.replace('.',''))
@@ -314,34 +315,36 @@ for runName in runNames:
             #     Images1.append(cv2.resize(thisImages[frameNumber],(256,96)))
             # else:
             Images.append(thisImages[frameNumber])
-            if frameNumber <= high and frameNumber >= detectedFrame:
-                pass
+            if frameNumber <= detectedFrame + 25 and frameNumber >= detectedFrame:
+                Images3[eventNumber]= np.add(Images3[eventNumber],np.divide(thisImages[frameNumber],255))
+                # pass
                 # Images4.append(thisImages[frameNumber])
                 # Images4.append(thisImages[frameNumber])
             # if frameNumber == detectedFrame + 2:
-            # Images3[eventNumber]= np.add(Images3[eventNumber],np.divide(thisImages[frameNumber],255))
-            Images3[eventNumber]= thisImages[frameNumber]
+            # Images3[eventNumber]= thisImages[frameNumber]
             if frameNumber < 25:
                 Images4.append(frames[frameNumber])
             if frameNumber == eventLength - 1:
                 # Images4.append(thisImages[frameNumber])
                 pass
+        Images3[eventNumber] = np.divide(Images3[eventNumber],np.max([1,np.max(Images3[eventNumber])]))
     makeBarHistGraphsSolo(labels,0.35,codeFrame,runName,False,False,folder+os.path.sep)
     newImage = np.zeros_like(Images3[0])
     newImage1 = np.zeros_like(Images4[0])
+    # for i in range(1):
     for i in range(len(Images3)):
         # cv2.imwrite(this_repo_path+os.path.sep+'sandboxFolder'+os.path.sep+str(i+1)+'.jpg',Images3[i])
-        newImage = np.add(newImage,np.divide(Images3[i],255))
+        newImage = np.add(newImage,np.divide(Images3[i],1))
     # for i in range(len(Images3)):
     #     cv2.imwrite(this_repo_path+os.path.sep+'sandboxFolder'+os.path.sep+str(i+1)+'.jpg',Images3[i])
     #     weighted = np.multiply(Images3[i],[np.rot90([np.arange(len(Images3[i]))]*len(Images3[i][0]),3),[np.arange(len(Images3[i][0]))]*len(Images3[i])])
     #     x,y=np.sum(weighted[0])/np.sum(Images3[i]),np.sum(weighted[1])/np.sum(Images3[i])
     #     print(x,y)
     #     newImage[int(x)][int(y)]+=1
-    for i in range(len(Images3)):
-        newImage[0][2*i] = i
-        newImage[1][2*i] = i
-    newImage = np.divide(newImage,len(Images3)/255)
+    # for i in range(len(Images3)):
+    #     newImage[0][2*i] = i
+    #     newImage[1][2*i] = i
+    # newImage = np.divide(newImage,len(Images3)/255)
     for i in range(len(Images4)):
         # cv2.imwrite(this_repo_path+os.path.sep+'sandboxFolder'+os.path.sep+str(i+1)+'.jpg',Images4[i])
         # weighted = np.multiply(Images4[i],[np.rot90([np.arange(len(Images4[i]))]*len(Images4[i][0]),3),[np.arange(len(Images4[i][0]))]*len(Images4[i])])
@@ -349,31 +352,80 @@ for runName in runNames:
         # print(x,y)
         # newImage1[int(x)][int(y)]+=1
         newImage1 = np.add(newImage1,np.divide(Images4[i],255))
-    newImage1 = np.divide(newImage1,np.max(newImage1)/255)
-    newImage1 = cv2.merge([np.divide(newImage1,1),newImage1,newImage1])#np.zeros_like(newImage1),np.zeros_like(newImage1)])
-    newImage2 = cv2.merge([np.zeros_like(newImage),0*newImage,newImage])
-    newImage = cv2.merge([0*np.mod(np.subtract(255,newImage),255),1/8*np.mod(np.subtract(255,newImage),255),np.mod(0*np.subtract(255,newImage),255)])
-    newImage = np.add(np.divide(newImage,1),np.divide(newImage2,1))
-    newImage = np.add(np.divide(newImage,5/4),np.divide(newImage1,4))
-    newImage = np.divide(newImage,np.max(newImage)/255)
-    newImageShape = newImage.shape
-    newImage1Shape = newImage1.shape
-    SCALE = 4
-    newImage = cv2.resize(newImage,(SCALE*newImageShape[1],SCALE*newImageShape[0]))
-    newImage1 = cv2.resize(newImage1,(SCALE*newImage1Shape[1],SCALE*newImage1Shape[0]))
-    newImage = np.array(newImage).astype(np.uint8)
-    newImage1 = np.array(newImage1).astype(np.uint8)
-    # while True:
-    #     cv2.imshow('test', concatFrames(newImage,newImage1,1))
-    #     if cv2.waitKey(0):
-    #         cv2.destroyAllWindows()
-    #         break
-    # while True:
-    #     cv2.imshow('test1',newImage)
-    #     if cv2.waitKey(0):
-    #         cv2.destroyAllWindows()
-    #         break
-    cv2.imwrite(folder+' - ' + runNames[0]+'0.jpg',newImage)
+    # print(newImage)
+    fig = plt.figure(figsize=(len(Images3[0][0])/8,len(Images3[0])/10))
+    plt.clf()
+    plt.axis('scaled')
+    newImage=concatFrames(newImage,len(Images3)+np.zeros((1,len(newImage[0]))),0)
+    y = np.rot90([np.arange(len(newImage))]*(len(newImage[0])),3)
+    x = np.array([np.arange(len(newImage[0]))]*(len(newImage)))
+    heatmap, xedges, yedges,placeholder = plt.hist2d(x.flatten(), y.flatten(), bins=(len(newImage[0]),len(newImage)),density=False,weights=newImage.flatten(),cmap=plt.cm.nipy_spectral)
+    cbar = plt.colorbar()
+    cbar.ax.set_xlabel('Density',fontsize=16)
+    cbar.ax.tick_params(labelsize=12) 
+    plt.xlim(0,len(newImage[0])-1)
+    plt.ylim(len(newImage)-2,0)
+    plt.xlabel('X (pixels)',fontsize=28)
+    plt.ylabel('Y (pixels)',fontsize=28)
+    plt.xticks(fontsize=24)
+    plt.yticks(fontsize=24)
+    plt.title(folder+' - '+runNames[0]+' - Snowball Nucleation Net Heat Map (N='+str(len(eventPrefixes))+')',fontsize=28)
+    fig.tight_layout()
+    plt.savefig(this_repo_path+os.path.sep+folder+' - '+runNames[0]+' - heat map ALL.jpg')
+    fig = plt.figure(figsize=(len(Images3[0][0])/10*np.ceil(np.sqrt(len(eventPrefixes))),len(Images3[0])/10*np.ceil(np.sqrt(len(eventPrefixes)))))
+    plt.clf()
+    for eventNumber in range(len(Images3)):
+        subPlot = plt.subplot(int(np.ceil(np.sqrt(len(eventPrefixes)))),int(np.ceil(np.sqrt(len(eventPrefixes)))),eventNumber+1)
+        subPlot.axis('scaled')
+        # subPlot.set_title(str(eventNumber+1),size=50)
+        subPlot.text(1,15,str(eventNumber+1),fontsize=100,c='w')
+        # plt.subplot(int(np.ceil(np.sqrt(len(eventPrefixes)))),int(np.ceil(np.sqrt(len(eventPrefixes)))),eventNumber+1).set_title('Event '+str(eventNumber))
+        # plt.xlabel('X',fontsize=20)
+        # plt.ylabel('Y',rotation=0,fontsize=20)
+        plt.xticks(fontsize=18)
+        plt.yticks(fontsize=18)
+        # subPlot.set_xticks(fontsize = 16)
+        # subPlot.set_yticks(fontsize = 16)
+        newImage=concatFrames(Images3[eventNumber],1+np.zeros((1,len(Images3[eventNumber][0]))),0)
+    # newImage=concatFrames(newImage,1+np.zeros((1,len(newImage[0]))),0)
+    # newImage=concatFrames(newImage,len(eventPrefixes)+np.zeros((1,len(newImage[0]))),0)
+        y = np.rot90([np.arange(len(newImage))]*(len(newImage[0])),3)
+        x = np.array([np.arange(len(newImage[0]))]*(len(newImage)))
+        heatmap, xedges, yedges,placeholder = plt.hist2d(x.flatten(), y.flatten(), bins=(len(newImage[0]),len(newImage)),density=False,weights=newImage.flatten(),cmap=plt.cm.nipy_spectral)
+        # plt.colorbar()
+        plt.xlim(0,len(newImage[0])-1)
+        plt.ylim(len(newImage)-2,0)
+        plt.axis('off')
+    plt.suptitle(folder+' - '+runNames[0]+' - Snowball Nucleation Event Heat Maps (N='+str(len(eventPrefixes))+')',fontsize=125,y=.992)
+    fig.tight_layout()
+    plt.savefig(this_repo_path+os.path.sep+folder+' - '+runNames[0]+' - event heat maps.jpg')
+    # plt.show()
+    if False:
+        newImage1 = np.divide(newImage1,np.max(newImage1)/255)
+        # newImage1 = cv2.merge([np.divide(newImage1,1),newImage1,newImage1])#np.zeros_like(newImage1),np.zeros_like(newImage1)])
+        # newImage2 = cv2.merge([np.zeros_like(newImage),0*newImage,newImage])
+        # newImage = cv2.merge([0*np.mod(np.subtract(255,newImage),255),1/8*np.mod(np.subtract(255,newImage),255),np.mod(0*np.subtract(255,newImage),255)])
+        newImage = np.add(np.divide(newImage,1),np.divide(newImage2,1))
+        newImage = np.add(np.divide(newImage,5/4),np.divide(newImage1,4))
+        newImage = np.divide(newImage,np.max(newImage)/255)
+        newImageShape = newImage.shape
+        newImage1Shape = newImage1.shape
+        SCALE = 4
+        newImage = cv2.resize(newImage,(SCALE*newImageShape[1],SCALE*newImageShape[0]))
+        newImage1 = cv2.resize(newImage1,(SCALE*newImage1Shape[1],SCALE*newImage1Shape[0]))
+        newImage = np.array(newImage).astype(np.uint8)
+        newImage1 = np.array(newImage1).astype(np.uint8)
+        # while True:
+        #     cv2.imshow('test', concatFrames(newImage,newImage1,1))
+        #     if cv2.waitKey(0):
+        #         cv2.destroyAllWindows()
+        #         break
+        # while True:
+        #     cv2.imshow('test1',newImage)
+        #     if cv2.waitKey(0):
+        #         cv2.destroyAllWindows()
+        #         break
+        cv2.imwrite(folder+' - ' + runNames[0]+'0.jpg',newImage)
     # while True:
     #     cv2.imshow('test1',newImage1)
     #     if cv2.waitKey(0):
@@ -386,6 +438,7 @@ for runName in runNames:
         txtFile.write(fileContents)
         txtFile.close()
     notesContent.append(runEventsNoteContent[:-1]+'\n')
+# writeAviVideo(videoName ='testVideo',frameRate = 1,allImages = Images3,openVideo = True,color = False)
 # writeAviVideo(videoName ='Full Runs - '+folder+' - control0',frameRate = 1,allImages = Images,openVideo = True,color = False)
 if False:
     writeAviVideo(videoName = folder+os.path.sep+'Full Runs - '+folder,frameRate = 1,allImages = Images,openVideo = False,color = False)

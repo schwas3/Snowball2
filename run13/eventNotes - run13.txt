@@ -1,2 +1,0 @@
-AmBe_side, Invalid Events: 57
-ctrl, Invalid Events: 50

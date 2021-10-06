@@ -1,2 +1,0 @@
-AmBe, Invalid Events: 1,19
-control, Invalid Events: 3,8,11,57

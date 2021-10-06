@@ -1,3 +1,0 @@
-AmBe-top, Invalid Events:
-ctrl, Invalid Events: 35,36
-This folder has very poor quality

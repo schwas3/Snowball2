@@ -1,2 +1,0 @@
-control, Invalid Events:
-Cs-137, Invalid Events: 68
