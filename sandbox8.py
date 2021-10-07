@@ -10,7 +10,6 @@ import glob
 from os import read, startfile, write
 from os.path import exists
 from numpy.core.numeric import zeros_like
-
 from numpy.lib.function_base import rot90
 
 def makeBarHistGraphsSolo(labels,width,barData,title,makeBar: bool,makeHist:bool,folderH):
@@ -286,7 +285,7 @@ for runName in runNames:
         codeFrame.append(detectedFrame)
         # keyFrame.append(int(answerKeyLines[eventNumber].split(' ')[0]))
         labels.append(eventLabel)
-        theseImages = thisEvent2
+        theseImages = thisEvent1
         tStamp = []
         for timestamp in thisEventFrameTimestamps:
             tStamp.append(timestamp.replace('.',''))
@@ -315,7 +314,7 @@ for runName in runNames:
             #     Images1.append(cv2.resize(thisImages[frameNumber],(256,96)))
             # else:
             Images.append(thisImages[frameNumber])
-            if frameNumber <= detectedFrame + 25 and frameNumber >= detectedFrame:
+            if frameNumber <= detectedFrame + 10 and frameNumber >= detectedFrame:
                 Images3[eventNumber]= np.add(Images3[eventNumber],np.divide(thisImages[frameNumber],255))
                 # pass
                 # Images4.append(thisImages[frameNumber])
@@ -359,7 +358,7 @@ for runName in runNames:
     newImage=concatFrames(newImage,len(Images3)+np.zeros((1,len(newImage[0]))),0)
     y = np.rot90([np.arange(len(newImage))]*(len(newImage[0])),3)
     x = np.array([np.arange(len(newImage[0]))]*(len(newImage)))
-    heatmap, xedges, yedges,placeholder = plt.hist2d(x.flatten(), y.flatten(), bins=(len(newImage[0]),len(newImage)),density=False,weights=newImage.flatten(),cmap=plt.cm.nipy_spectral)
+    heatmap, xedges, yedges,placeholder = plt.hist2d(x.flatten(), y.flatten(), bins=(len(newImage[0]),len(newImage)),density=False,weights=np.divide(newImage.flatten(),len(Images3)),cmap=plt.cm.nipy_spectral)
     cbar = plt.colorbar()
     cbar.ax.set_xlabel('Density',fontsize=16)
     cbar.ax.tick_params(labelsize=12) 
@@ -369,9 +368,10 @@ for runName in runNames:
     plt.ylabel('Y (pixels)',fontsize=28)
     plt.xticks(fontsize=24)
     plt.yticks(fontsize=24)
+    modifyingTitle = 'thisEvent1 10 frames'
     plt.title(folder+' - '+runNames[0]+' - Snowball Nucleation Net Heat Map (N='+str(len(eventPrefixes))+')',fontsize=28)
     fig.tight_layout()
-    plt.savefig(this_repo_path+os.path.sep+folder+' - '+runNames[0]+' - heat map ALL.jpg')
+    plt.savefig(this_repo_path+os.path.sep+folder+' - '+runNames[0]+' - heat map ALL - '+modifyingTitle+'.jpg')
     fig = plt.figure(figsize=(len(Images3[0][0])/10*np.ceil(np.sqrt(len(eventPrefixes))),len(Images3[0])/10*np.ceil(np.sqrt(len(eventPrefixes)))))
     plt.clf()
     for eventNumber in range(len(Images3)):
@@ -398,7 +398,7 @@ for runName in runNames:
         plt.axis('off')
     plt.suptitle(folder+' - '+runNames[0]+' - Snowball Nucleation Event Heat Maps (N='+str(len(eventPrefixes))+')',fontsize=125,y=.992)
     fig.tight_layout()
-    plt.savefig(this_repo_path+os.path.sep+folder+' - '+runNames[0]+' - event heat maps.jpg')
+    plt.savefig(this_repo_path+os.path.sep+folder+' - '+runNames[0]+' - event heat maps - '+modifyingTitle+'.jpg')
     # plt.show()
     if False:
         newImage1 = np.divide(newImage1,np.max(newImage1)/255)
