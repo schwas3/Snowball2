@@ -18,9 +18,9 @@ muonVetoIndicesPath = 'C:\\Users\\Scott\\Downloads\\ForScott2'
 resultsPaths = 'C:\\Users\\Scott\\Documents\\GitHub\\Snowball6\\Bar and Hist Figs'
 thisPaths = 'C:\\Users\\Scott\\Documents\\GitHub\\Snowball2'
 imagesPaths = 'C:\\Users\\Scott\\Documents\\GitHub\\Snowball9\\SNOWBALL CROPPED IMAGES'
-indexN = 2
+indexN = 1
 fileQ = ['c*tr*l','ambe','ambe*pb','cs*137','fiesta','UBe','cf*pb'][indexN]
-name = ['control', 'AmBe','AmBe Pb', 'Cs137', 'fiesta','UBe','CfPb'][indexN]
+name = ['control', 'AmBe','AmBe Pb', 'Cs137', 'U','UBe','CfPb'][indexN]
 runNamePaths = glob.glob(thisPaths+os.path.sep+ '* - '+fileQ+'* - Muon Delta T (best).txt')
 # runNamePaths = glob.glob(resultsPaths + os.path.sep + '*' + os.path.sep + fileQ+'* - Results.txt')
 runNameNames = [os.path.basename(i) for i in runNamePaths]
@@ -35,19 +35,34 @@ if indexN == 1:
 # print(runNameNames)
 # print(len(runNameNames))
 data = []
-binsPerSecond = 50
-for fileName in runNameNames:
+bigData = []
+binsPerSecond = 10
+bounds = 1
+fig = plt.figure(figsize = (10,5.63))
+for i in range(len(runNameNames)):
+    fileName = runNameNames[i]
     thisFile = open(fileName,'r')
     thisData = thisFile.read()
     thisFile.close()
-    data += [float(i) for i in thisData.split('\n')]
+    data = [float(i) for i in thisData.split('\n')]
+    bigData += data
+    subPlot = plt.subplot(int(np.ceil(np.sqrt(len(runNameNames)))),int(np.ceil(np.sqrt(len(runNameNames)))),i+1,title=fileName.split(' - Muon Delta T (best).txt')[0]+' (N='+str(len(data))+')')
+    counts,bins = np.histogram(data,int(2*bounds*binsPerSecond),range=(-bounds,bounds))
+    plt.plot(bins[:-1]/2+bins[1:]/2,counts/len(data))
+    # plt.hist(bins[:-1],bins,weights=counts/len(data))
+    plt.ylim(-.05,.6)
+plt.suptitle(name+' Separate - MuonVeto Delta t\'s')
+fig.tight_layout()
+plt.savefig(name+' Separate - Muon Hist.jpg')
 fig = plt.figure(figsize=(10,5.63))
-counts,bins = np.histogram(data,12*binsPerSecond,range=(-6,6))
-plt.hist(bins[:-1],bins,weights=counts/np.sum(counts))
-plt.suptitle(name+' Ag - MuonVeto Delta t\'s (N='+str(len(data))+')')
+counts,bins = np.histogram(bigData,int(2*bounds*binsPerSecond),range=(-bounds,bounds))
+plt.plot(bins[:-1]/2+bins[1:]/2,counts/len(bigData))
+# plt.errorbar(bins[:-1]/2)
+# plt.hist(bins[:-1],bins,weights=counts/len(bigData))
+plt.suptitle(name+' Ag - MuonVeto Delta t\'s (N='+str(len(bigData))+')')
 plt.savefig(name+' Ag - Muon Hist.jpg')
 txtFile = open(name+' Ag - Muon Delta T (best).txt','w')
-txtFile.write('\n'.join([str(i) for i in data]))
+txtFile.write('\n'.join([str(i) for i in bigData]))
 txtFile.close()
 
 # plt.clf()
