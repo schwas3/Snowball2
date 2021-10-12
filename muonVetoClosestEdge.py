@@ -162,10 +162,9 @@ for i in range(len(sNums)):
     if (len(volts1) > 0 and volts1[-1] < 0.5) or (len(volts2) > 0 and volts2[0] < 0.5):
         try:
             prevFallingEdge = times1[volts1 > 0.5][-1]
-            # volts1 = volts1[times1 < prevFallingEdge]
-            # times1 = times1[times1 < prevFallingEdge]
-            # before.append(detectedTimes[i]-times1[volts1<0.5][-1])
-            before.append(detectedTimes[i]-prevFallingEdge)
+            volts1 = volts1[times1 < prevFallingEdge]
+            times1 = times1[times1 < prevFallingEdge]
+            before.append(detectedTimes[i]-times1[volts1<0.5][-1])
         except:
             before.append(10000)
         try:
@@ -176,10 +175,9 @@ for i in range(len(sNums)):
     else:
         try:
             nextFallingEdge = times2[volts2 < 0.5][0]
-            # volts2 = volts2[times2 > nextFallingEdge]
-            # times2 = times2[times2 > nextFallingEdge]
-            # after.append(times2[volts2>0.5][0]-detectedTimes[i])
-            after.append(nextFallingEdge-detectedTimes[i])
+            volts2 = volts2[times2 > nextFallingEdge]
+            times2 = times2[times2 > nextFallingEdge]
+            after.append(times2[volts2>0.5][0]-detectedTimes[i])
         except:
             after.append(10000)
         try:
@@ -209,20 +207,20 @@ for i in range(len(sNums)):
     plt.xticks([])
     plt.yticks([])
     subPlot.text(eventFiles[i][np.max([1,detectedFrames[i]-9])],1,str(i+1)+' - '+str(round(best[i],4)),fontsize=8)
-plt.suptitle(folder2+' - '+runName2+' - MuonVeto Overlay Closest Edge (N='+str(len(sNums))+')')
+plt.suptitle(folder2+' - '+runName2+' - MuonVeto Overlay (N='+str(len(sNums))+')')
 fig.tight_layout()
-plt.savefig(folder2+' - '+runName2+' - Muon - Closest Edge.jpg')
+plt.savefig(folder2+' - '+runName2+' - Muon.jpg')
 # plt.clf()
 # plt.show(block=True)
 deltas = [before,after,best]
 fig = plt.figure(figsize=(10,5.63))
-for i in range(2,3):
+for i in range(0,5):
     # plt.subplot(1,3,i+1,title=['Future Rising Edge Delta t\'s','Past Rising Edge Delta t\'s','Minimum Rising Edge Delta t\'s'][i])
     counts,bins = np.histogram(deltas[i],20,range=(-1,1))
     plt.hist(bins[:-1],bins,weights=counts/np.sum(counts))
-plt.suptitle(folder2+' - '+runName2+' - MuonVeto Closest Edge Delta t\'s (N='+str(len(sNums))+')')
-plt.savefig(folder2+' - '+runName2+' - Muon Hist - Closest Edge.jpg')
-txtFile = open(folder2+' - '+runName2+' - Muon Delta T (best - Closest Edge).txt','w')
+plt.suptitle(folder2+' - '+runName2+' - MuonVeto Delta t\'s (N='+str(len(sNums))+')')
+plt.savefig(folder2+' - '+runName2+' - Muon Hist.jpg')
+txtFile = open(folder2+' - '+runName2+' - Muon Delta T (best).txt','w')
 txtFile.write('\n'.join([str(i) for i in best]))
 txtFile.close()
 print(risingEdges,timePassed,risingEdges/timePassed)

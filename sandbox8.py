@@ -211,7 +211,7 @@ runNames = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.se
 for i in range(len(runNames)):
     runNames[i] = os.path.basename(runNames[i])
 # print(runNames)
-runNames = ['control 1'] # the short name of the folder containing images (tif files)
+runNames = ['Cf Pb 2'] # the short name of the folder containing images (tif files)
 notesContent = []
 for runName in runNames:
     Images3 = []
