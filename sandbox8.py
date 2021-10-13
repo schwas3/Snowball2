@@ -254,6 +254,7 @@ for runName in runNames:
         frames = []
         thisEventImages = normalizePixelValues(thisEventImages,30,225) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
         Images3.append(np.zeros_like(thisEventImages[0]))
+        Images4.append(np.zeros_like(thisEventImages[0]))
         for frameNumber in range(eventLength):
             frames.append(thisEventImages[frameNumber])
         # thisEventImages = normalizePixelValues(thisEventImages,30,225) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
@@ -285,7 +286,8 @@ for runName in runNames:
         codeFrame.append(detectedFrame)
         # keyFrame.append(int(answerKeyLines[eventNumber].split(' ')[0]))
         labels.append(eventLabel)
-        theseImages = thisEvent1
+        theseImages = extractForegroundMask(False,True,True,thisEventImages,ballParkFrame - 10,9,0,ballParkFrame+2)
+        # theseImages = thisEvent1
         tStamp = []
         for timestamp in thisEventFrameTimestamps:
             tStamp.append(timestamp.replace('.',''))
@@ -316,17 +318,20 @@ for runName in runNames:
             Images.append(thisImages[frameNumber])
             if frameNumber <= detectedFrame + 10 and frameNumber >= detectedFrame:
                 Images3[eventNumber]= np.add(Images3[eventNumber],np.divide(thisImages[frameNumber],255))
+            if frameNumber <= detectedFrame + 0 and frameNumber >= detectedFrame:
+                Images4[eventNumber]= np.add(Images4[eventNumber],np.divide(thisEvent1[frameNumber],255))
                 # pass
                 # Images4.append(thisImages[frameNumber])
                 # Images4.append(thisImages[frameNumber])
             # if frameNumber == detectedFrame + 2:
             # Images3[eventNumber]= thisImages[frameNumber]
-            if frameNumber < 25:
-                Images4.append(frames[frameNumber])
+            # if frameNumber < 25:
+            #     Images4.append(frames[frameNumber])
             if frameNumber == eventLength - 1:
                 # Images4.append(thisImages[frameNumber])
                 pass
         Images3[eventNumber] = np.divide(Images3[eventNumber],np.max([1,np.max(Images3[eventNumber])]))
+        Images4[eventNumber] = np.divide(Images4[eventNumber],np.max([1,np.max(Images4[eventNumber])]))
     makeBarHistGraphsSolo(labels,0.35,codeFrame,runName,False,False,folder+os.path.sep)
     newImage = np.zeros_like(Images3[0])
     newImage1 = np.zeros_like(Images4[0])
@@ -346,11 +351,12 @@ for runName in runNames:
     # newImage = np.divide(newImage,len(Images3)/255)
     for i in range(len(Images4)):
         # cv2.imwrite(this_repo_path+os.path.sep+'sandboxFolder'+os.path.sep+str(i+1)+'.jpg',Images4[i])
+        # newImage1 = np.add(newImage,np.divide(Images4[i],1))
         # weighted = np.multiply(Images4[i],[np.rot90([np.arange(len(Images4[i]))]*len(Images4[i][0]),3),[np.arange(len(Images4[i][0]))]*len(Images4[i])])
         # x,y=np.sum(weighted[0])/np.sum(Images4[i]),np.sum(weighted[1])/np.sum(Images4[i])
         # print(x,y)
         # newImage1[int(x)][int(y)]+=1
-        newImage1 = np.add(newImage1,np.divide(Images4[i],255))
+        newImage1 = np.add(newImage1,np.divide(Images4[i],1))
     # print(newImage)
     fig = plt.figure(figsize=(len(Images3[0][0])/8,len(Images3[0])/10))
     plt.clf()
@@ -359,6 +365,12 @@ for runName in runNames:
     y = np.rot90([np.arange(len(newImage))]*(len(newImage[0])),3)
     x = np.array([np.arange(len(newImage[0]))]*(len(newImage)))
     heatmap, xedges, yedges,placeholder = plt.hist2d(x.flatten(), y.flatten(), bins=(len(newImage[0]),len(newImage)),density=False,weights=np.divide(newImage.flatten(),len(Images3)),cmap=plt.cm.nipy_spectral)
+    # newImage1 = newImage[:-1]
+    cy = np.sum(np.multiply(y[:-1],newImage1))/np.sum(newImage1)
+    cx = np.sum(np.multiply(x[:-1],newImage1))/np.sum(newImage1)
+    print(cx,cy)
+    plt.hlines(cy,0,len(newImage[0]),colors=['w'])
+    plt.vlines(cx,0,len(newImage),colors=['w'])
     cbar = plt.colorbar()
     cbar.ax.set_xlabel('Density',fontsize=16)
     cbar.ax.tick_params(labelsize=12) 
@@ -368,7 +380,8 @@ for runName in runNames:
     plt.ylabel('Y (pixels)',fontsize=28)
     plt.xticks(fontsize=24)
     plt.yticks(fontsize=24)
-    modifyingTitle = 'thisEvent1 10 frames'
+    modifyingTitle = 'thisEvent1 (w overlay) 10 frames X(15 not 9)'
+    plt.text(1,88,str(round(np.mean(codeFrame),2))+'+/-'+str(round(np.std(codeFrame),2)),fontsize = 30, c='w')
     plt.title(folder+' - '+runNames[0]+' - Snowball Nucleation Net Heat Map (N='+str(len(eventPrefixes))+')',fontsize=28)
     fig.tight_layout()
     plt.savefig(this_repo_path+os.path.sep+folder+' - '+runNames[0]+' - heat map ALL - '+modifyingTitle+'.jpg')
@@ -379,6 +392,7 @@ for runName in runNames:
         subPlot.axis('scaled')
         # subPlot.set_title(str(eventNumber+1),size=50)
         subPlot.text(1,15,str(eventNumber+1),fontsize=100,c='w')
+        subPlot.text(1,86,detectedFrames[eventNumber].split(',')[0],fontsize=100,c='w')
         # plt.subplot(int(np.ceil(np.sqrt(len(eventPrefixes)))),int(np.ceil(np.sqrt(len(eventPrefixes)))),eventNumber+1).set_title('Event '+str(eventNumber))
         # plt.xlabel('X',fontsize=20)
         # plt.ylabel('Y',rotation=0,fontsize=20)
@@ -387,12 +401,19 @@ for runName in runNames:
         # subPlot.set_xticks(fontsize = 16)
         # subPlot.set_yticks(fontsize = 16)
         newImage=concatFrames(Images3[eventNumber],1+np.zeros((1,len(Images3[eventNumber][0]))),0)
+        newImage1=Images4[eventNumber]
     # newImage=concatFrames(newImage,1+np.zeros((1,len(newImage[0]))),0)
     # newImage=concatFrames(newImage,len(eventPrefixes)+np.zeros((1,len(newImage[0]))),0)
         y = np.rot90([np.arange(len(newImage))]*(len(newImage[0])),3)
         x = np.array([np.arange(len(newImage[0]))]*(len(newImage)))
+        cy = np.sum(np.multiply(y[:-1],newImage1))/np.sum(newImage1)
+        cx = np.sum(np.multiply(x[:-1],newImage1))/np.sum(newImage1)
         heatmap, xedges, yedges,placeholder = plt.hist2d(x.flatten(), y.flatten(), bins=(len(newImage[0]),len(newImage)),density=False,weights=newImage.flatten(),cmap=plt.cm.nipy_spectral)
         # plt.colorbar()
+        # if (eventNumber == 1):
+        plt.hlines(cy,0,len(newImage[0]),colors=['w'])
+        plt.vlines(cx,0,len(newImage),colors=['w'])
+        print(cx,cy)
         plt.xlim(0,len(newImage[0])-1)
         plt.ylim(len(newImage)-2,0)
         plt.axis('off')
