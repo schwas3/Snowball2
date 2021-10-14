@@ -206,12 +206,12 @@ github_path, this_repo_name = os.path.split(this_repo_path) # gets the users git
 data_repo_name = "Snowball9"
 data_repo_path = github_path + os.path.sep + data_repo_name
 data_folder_name = 'SNOWBALL CROPPED IMAGES'
-folder = 'a'
+folder = 'Run06'
 runNames = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.sep + folder + os.path.sep + '*')
 for i in range(len(runNames)):
     runNames[i] = os.path.basename(runNames[i])
 # print(runNames)
-runNames = ['control0'] # the short name of the folder containing images (tif files)
+runNames = ['Cs-137'] # the short name of the folder containing images (tif files)
 notesContent = []
 for runName in runNames:
     Images3 = []
@@ -290,11 +290,12 @@ for runName in runNames:
         backCheck = False
         staticBoy = True
         histLeng = 50
-        thresh = 20
-        blur = 1
+        thresh = 200
+        blur = 9
         startingAt = 0
+        openYorN = False
         theseImages = extractForegroundMask(False,backCheck,staticBoy,thisEventImages,histLeng,thresh,blur,startingAt)
-        modifyingTitle = 'X(false,'+','.join([str(HOLD).lower() for HOLD in [backCheck,staticBoy,histLeng,thresh,blur,startingAt]])+')'
+        modifyingTitle = 'X(false,'+','.join([str(holding).lower() for holding in [backCheck,staticBoy,histLeng,thresh,blur,startingAt]])+')'
         # modifyingTitle = 'X(false,false,true,50,100,15,0)'
         # theseImages = thisEvent1
         tStamp = []
@@ -392,18 +393,19 @@ for runName in runNames:
     plt.ylabel('Y (pixels)',fontsize=28)
     plt.xticks(fontsize=24)
     plt.yticks(fontsize=24)
-    plt.text(1,88,str(round(np.mean(codeFrame),2))+'+/-'+str(round(np.std(codeFrame),2)),fontsize = 30, c='w')
+    plt.text(1,len(Images3[0])-5,str(round(np.mean(codeFrame),2))+'+/-'+str(round(np.std(codeFrame),2)),fontsize = 30, c='w')
     plt.title(folder+' - '+runNames[0]+' - Snowball Nucleation Net Heat Map (N='+str(len(eventPrefixes))+')',fontsize=28)
     fig.tight_layout()
     plt.savefig(this_repo_path+os.path.sep+folder+' - '+runNames[0]+' - heat map ALL - '+modifyingTitle+'.jpg')
     fig = plt.figure(figsize=(len(Images3[0][0])/10*np.ceil(np.sqrt(len(eventPrefixes))),len(Images3[0])/10*np.ceil(np.sqrt(len(eventPrefixes)))))
     plt.clf()
+    xPos,yPos=[],[]
     for eventNumber in range(len(Images3)):
         subPlot = plt.subplot(int(np.ceil(np.sqrt(numEvents))),int(np.ceil(np.sqrt(numEvents))),eventNumber+1)
         subPlot.axis('scaled')
         # subPlot.set_title(str(eventNumber+1),size=50)
         subPlot.text(1,15,str(eventsOfInterest[eventNumber]+1),fontsize=100,c='w')
-        subPlot.text(1,86,detectedFrames[eventNumber].split(',')[0],fontsize=100,c='w')
+        subPlot.text(1,len(Images3[0])-5,detectedFrames[eventNumber].split(',')[0],fontsize=100,c='w')
         # plt.subplot(int(np.ceil(np.sqrt(len(eventPrefixes)))),int(np.ceil(np.sqrt(len(eventPrefixes)))),eventNumber+1).set_title('Event '+str(eventNumber))
         # plt.xlabel('X',fontsize=20)
         # plt.ylabel('Y',rotation=0,fontsize=20)
@@ -417,8 +419,11 @@ for runName in runNames:
     # newImage=concatFrames(newImage,len(eventPrefixes)+np.zeros((1,len(newImage[0]))),0)
         y = np.rot90([np.arange(len(newImage))]*(len(newImage[0])),3)
         x = np.array([np.arange(len(newImage[0]))]*(len(newImage)))
-        cy = np.sum(np.multiply(y[:-1],newImage1))/np.sum(newImage1)
-        cx = np.sum(np.multiply(x[:-1],newImage1))/np.sum(newImage1)
+        if np.sum(newImage1) > 0:
+            cy = np.sum(np.multiply(y[:-1],newImage1))/np.sum(newImage1)
+            cx = np.sum(np.multiply(x[:-1],newImage1))/np.sum(newImage1)
+            yPos.append(cy)
+            xPos.append(cx)
         heatmap, xedges, yedges,placeholder = plt.hist2d(x.flatten(), y.flatten(), bins=(len(newImage[0]),len(newImage)),density=False,weights=newImage.flatten(),cmap=plt.cm.nipy_spectral)
         # plt.colorbar()
         # if (eventNumber == 1):
@@ -432,6 +437,20 @@ for runName in runNames:
     fig.tight_layout()
     plt.savefig(this_repo_path+os.path.sep+folder+' - '+runNames[0]+' - event heat maps - '+modifyingTitle+'.jpg')
     # plt.show()
+    fig = plt.figure(figsize=(len(Images3[0][0])/8,len(Images3[0])/10))
+    plt.clf()
+    plt.axis('scaled')
+    plt.scatter(xPos,yPos,s=3)
+    plt.errorbar([np.mean(xPos)],[np.mean(yPos)],yerr=np.std(yPos),xerr=np.std(xPos))
+    plt.xlabel('X (pixels)',fontsize=12)
+    plt.ylabel('Y (pixels)',fontsize=12)
+    plt.xticks(fontsize=10)
+    plt.yticks(fontsize=10)
+    plt.xlim(0,len(newImage[0])-1)
+    plt.ylim(len(newImage)-2,0)
+    plt.title(folder+' - '+runNames[0]+' - Primary Nucleation Event Location Map N='+str(len(yPos))+'('+str(len(eventPrefixes))+')',fontsize=16)
+    fig.tight_layout()
+    plt.savefig(this_repo_path+os.path.sep+folder+' - '+runNames[0]+' - event location scatter.jpg')
     if False:
         newImage1 = np.divide(newImage1,np.max(newImage1)/255)
         # newImage1 = cv2.merge([np.divide(newImage1,1),newImage1,newImage1])#np.zeros_like(newImage1),np.zeros_like(newImage1)])
@@ -472,7 +491,7 @@ for runName in runNames:
     notesContent.append(runEventsNoteContent[:-1]+'\n')
 # writeAviVideo(videoName ='testVideo',frameRate = 1,allImages = Images3,openVideo = True,color = False)
 # writeAviVideo(videoName ='Full Runs - '+folder+' - control0',frameRate = 1,allImages = Images,openVideo = True,color = False)
-writeAviVideo(videoName = 'TestVideo',frameRate = 1,allImages = Images,openVideo = True,color = False)
+if openYorN:writeAviVideo(videoName = 'TestVideo',frameRate = 1,allImages = Images,openVideo = openYorN,color = False)
 if False:
     writeAviVideo(videoName = folder+os.path.sep+'Full Runs - '+folder,frameRate = 1,allImages = Images,openVideo = False,color = False)
     txtFile = open(this_repo_path+os.path.sep+folder+os.path.sep+'eventNotes - '+folder+'.txt','w')

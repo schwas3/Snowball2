@@ -206,12 +206,12 @@ github_path, this_repo_name = os.path.split(this_repo_path) # gets the users git
 data_repo_name = "Snowball9"
 data_repo_path = github_path + os.path.sep + data_repo_name
 data_folder_name = 'SNOWBALL CROPPED IMAGES'
-folder = 'a'
+folder = 'Run06'
 runNames = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.sep + folder + os.path.sep + '*')
 for i in range(len(runNames)):
     runNames[i] = os.path.basename(runNames[i])
 # print(runNames)
-runNames = ['control0'] # the short name of the folder containing images (tif files)
+runNames = ['Cs-137'] # the short name of the folder containing images (tif files)
 notesContent = []
 for runName in runNames:
     Images3 = []
@@ -412,10 +412,13 @@ for runName in runNames:
     # newImage=concatFrames(newImage,len(eventPrefixes)+np.zeros((1,len(newImage[0]))),0)
         y = np.rot90([np.arange(len(newImage))]*(len(newImage[0])),3)
         x = np.array([np.arange(len(newImage[0]))]*(len(newImage)))
-        cy = np.sum(np.multiply(y[:-1],newImage1))/np.sum(newImage1)
-        cx = np.sum(np.multiply(x[:-1],newImage1))/np.sum(newImage1)
-        yPos.append(cy)
-        xPos.append(cx)
+        try:
+            cy = np.sum(np.multiply(y[:-1],newImage1))/np.sum(newImage1)
+            cx = np.sum(np.multiply(x[:-1],newImage1))/np.sum(newImage1)
+            yPos.append(cy)
+            xPos.append(cx)
+        except:
+            pass
         heatmap, xedges, yedges,placeholder = plt.hist2d(x.flatten(), y.flatten(), bins=(len(newImage[0]),len(newImage)),density=False,weights=newImage.flatten(),cmap=plt.cm.nipy_spectral)
         # plt.colorbar()
         # if (eventNumber == 1):
@@ -440,7 +443,7 @@ for runName in runNames:
     plt.yticks(fontsize=24)
     plt.xlim(0,len(newImage[0])-1)
     plt.ylim(len(newImage)-2,0)
-    plt.title(folder+' - '+runNames[0]+' - Primary Nucleation Event Location Map (N='+str(len(eventPrefixes))+')',fontsize=28)
+    plt.title(folder+' - '+runNames[0]+' - Primary Nucleation Event Location Map (N='+str(len(yPos))+'('+str(len(eventPrefixes))+'))',fontsize=28)
     fig.tight_layout()
     plt.savefig(this_repo_path+os.path.sep+folder+' - '+runNames[0]+' - event location scatter.jpg')
     if False:
