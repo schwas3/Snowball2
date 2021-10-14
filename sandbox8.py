@@ -206,12 +206,12 @@ github_path, this_repo_name = os.path.split(this_repo_path) # gets the users git
 data_repo_name = "Snowball9"
 data_repo_path = github_path + os.path.sep + data_repo_name
 data_folder_name = 'SNOWBALL CROPPED IMAGES'
-folder = 'Run06'
+folder = 'Run03'
 runNames = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.sep + folder + os.path.sep + '*')
 for i in range(len(runNames)):
     runNames[i] = os.path.basename(runNames[i])
 # print(runNames)
-runNames = ['Cs-137'] # the short name of the folder containing images (tif files)
+runNames = ['control'] # the short name of the folder containing images (tif files)
 notesContent = []
 for runName in runNames:
     Images3 = []
@@ -289,13 +289,13 @@ for runName in runNames:
         labels.append(eventLabel)
         backCheck = False
         staticBoy = True
-        histLeng = 50
+        histLeng = detectedFrame - 5
         thresh = 200
         blur = 9
         startingAt = 0
         openYorN = False
         theseImages = extractForegroundMask(False,backCheck,staticBoy,thisEventImages,histLeng,thresh,blur,startingAt)
-        modifyingTitle = 'X(false,'+','.join([str(holding).lower() for holding in [backCheck,staticBoy,histLeng,thresh,blur,startingAt]])+')'
+        modifyingTitle = 'X(false,'+','.join([str(holding).lower() for holding in [backCheck,staticBoy,'detectedFrame-5',thresh,blur,startingAt]])+')'
         # modifyingTitle = 'X(false,false,true,50,100,15,0)'
         # theseImages = thisEvent1
         tStamp = []
@@ -389,17 +389,21 @@ for runName in runNames:
     cbar.ax.tick_params(labelsize=12) 
     plt.xlim(0,len(newImage[0])-1)
     plt.ylim(len(newImage)-2,0)
-    plt.xlabel('X (pixels)',fontsize=28)
-    plt.ylabel('Y (pixels)',fontsize=28)
-    plt.xticks(fontsize=24)
-    plt.yticks(fontsize=24)
-    plt.text(1,len(Images3[0])-5,str(round(np.mean(codeFrame),2))+'+/-'+str(round(np.std(codeFrame),2)),fontsize = 30, c='w')
-    plt.title(folder+' - '+runNames[0]+' - Snowball Nucleation Net Heat Map (N='+str(len(eventPrefixes))+')',fontsize=28)
+    plt.xlabel('X (pixels)',fontsize=12)
+    plt.ylabel('Y (pixels)',fontsize=12)
+    plt.xticks(fontsize=10)
+    plt.yticks(fontsize=10)
+    plt.xlim(0,len(newImage[0])-1)
+    plt.ylim(len(newImage)-2,0)
+    # plt.title(folder+' - '+runNames[0]+' - Primary Nucleation Event Location Map N='+str(len(yPos))+'('+str(len(eventPrefixes))+')',fontsize=16)
+    fig.tight_layout()
+    plt.text(1,len(Images3[0])-5,str(round(np.mean(codeFrame),2))+'+/-'+str(round(np.std(codeFrame),2)),fontsize = 16, c='w')
+    plt.title(folder+' - '+runNames[0]+' - Snowball Nucleation Net Heat Map (N='+str(len(eventPrefixes))+')',fontsize=16)
     fig.tight_layout()
     plt.savefig(this_repo_path+os.path.sep+folder+' - '+runNames[0]+' - heat map ALL - '+modifyingTitle+'.jpg')
     fig = plt.figure(figsize=(len(Images3[0][0])/10*np.ceil(np.sqrt(len(eventPrefixes))),len(Images3[0])/10*np.ceil(np.sqrt(len(eventPrefixes)))))
     plt.clf()
-    xPos,yPos=[],[]
+    xPos,yPos,posName=[],[],[]
     for eventNumber in range(len(Images3)):
         subPlot = plt.subplot(int(np.ceil(np.sqrt(numEvents))),int(np.ceil(np.sqrt(numEvents))),eventNumber+1)
         subPlot.axis('scaled')
@@ -424,15 +428,19 @@ for runName in runNames:
             cx = np.sum(np.multiply(x[:-1],newImage1))/np.sum(newImage1)
             yPos.append(cy)
             xPos.append(cx)
+            posName.append(str(eventNumber + 1))
+            plt.hlines(cy,0,len(newImage[0]),colors=['w'])
+            plt.vlines(cx,0,len(newImage),colors=['w'])
         heatmap, xedges, yedges,placeholder = plt.hist2d(x.flatten(), y.flatten(), bins=(len(newImage[0]),len(newImage)),density=False,weights=newImage.flatten(),cmap=plt.cm.nipy_spectral)
         # plt.colorbar()
         # if (eventNumber == 1):
-        plt.hlines(cy,0,len(newImage[0]),colors=['w'])
-        plt.vlines(cx,0,len(newImage),colors=['w'])
         # print(cx,cy)
         plt.xlim(0,len(newImage[0])-1)
         plt.ylim(len(newImage)-2,0)
         plt.axis('off')
+    # xPos = xPos[1:]
+    # yPos = yPos[1:]
+    # posName = posName[1:]
     plt.suptitle(folder+' - '+runNames[0]+' - Snowball Nucleation Event Heat Maps (N='+str(len(eventPrefixes))+')',fontsize=125,y=.992)
     fig.tight_layout()
     plt.savefig(this_repo_path+os.path.sep+folder+' - '+runNames[0]+' - event heat maps - '+modifyingTitle+'.jpg')
@@ -440,15 +448,18 @@ for runName in runNames:
     fig = plt.figure(figsize=(len(Images3[0][0])/8,len(Images3[0])/10))
     plt.clf()
     plt.axis('scaled')
-    plt.scatter(xPos,yPos,s=3)
-    plt.errorbar([np.mean(xPos)],[np.mean(yPos)],yerr=np.std(yPos),xerr=np.std(xPos))
-    plt.xlabel('X (pixels)',fontsize=12)
-    plt.ylabel('Y (pixels)',fontsize=12)
-    plt.xticks(fontsize=10)
-    plt.yticks(fontsize=10)
+    plt.scatter(xPos,yPos,s=45,marker='.',c='r',label='Primary Nucleation\nEvent Locations')
+    # for i in range(len(xPos)):
+    #     plt.text(xPos[i],yPos[i],posName[i],fontsize=10,ha='right',va='bottom')
+    plt.errorbar([np.mean(xPos)],[np.mean(yPos)],yerr=np.std(yPos),xerr=np.std(xPos),label='X='+str(round(np.mean(xPos),1))+'+/-'+str(round(np.std(xPos),1))+'\nY='+str(round(np.mean(yPos),1))+'+/-'+str(round(np.std(yPos),1)),elinewidth=2,capsize=5,capthick=2,marker='.',ms=15,linewidth=0)
+    plt.xlabel('X (pixels)',fontsize=20)
+    plt.ylabel('Y (pixels)',fontsize=20)
+    plt.xticks(fontsize=16)
+    plt.yticks(fontsize=16)
     plt.xlim(0,len(newImage[0])-1)
     plt.ylim(len(newImage)-2,0)
-    plt.title(folder+' - '+runNames[0]+' - Primary Nucleation Event Location Map N='+str(len(yPos))+'('+str(len(eventPrefixes))+')',fontsize=16)
+    plt.legend(fontsize=16,labelspacing=1)
+    plt.title(folder+' - '+runNames[0]+' - Primary Nucleation Event Location Map N='+str(len(yPos))+'('+str(len(eventPrefixes))+')',fontsize=24)
     fig.tight_layout()
     plt.savefig(this_repo_path+os.path.sep+folder+' - '+runNames[0]+' - event location scatter.jpg')
     if False:
