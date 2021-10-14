@@ -92,7 +92,7 @@ def eventFrameStamp(eventNumber,eventImages,eventPrefix,eventTimestamps,labels: 
             images[frameNumber] = imgNumStamps(addLeadingZeros(10,eventTimestamps[frameNumber]),len(images[0])-7,0,images[frameNumber])
     else:
         for frameNumber in range(len(images)):
-            images[frameNumber] = imgNumStamps(addLeadingZeros(2,eventNumber+1)+'-'+addLeadingZeros(3,(eventNumber+1)%len(images)),0,0,images[frameNumber])    
+            images[frameNumber] = imgNumStamps(addLeadingZeros(2,eventNumber+1)+'-'+addLeadingZeros(3,(frameNumber)%len(images)),0,0,images[frameNumber])    
     return images
 def normalizePixelValues(eventImages,lowerLimit,upperLimit):
     images = np.array(initializeImages(eventImages))
@@ -206,12 +206,12 @@ github_path, this_repo_name = os.path.split(this_repo_path) # gets the users git
 data_repo_name = "Snowball9"
 data_repo_path = github_path + os.path.sep + data_repo_name
 data_folder_name = 'SNOWBALL CROPPED IMAGES'
-folder = 'e'
+folder = 'a'
 runNames = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.sep + folder + os.path.sep + '*')
 for i in range(len(runNames)):
     runNames[i] = os.path.basename(runNames[i])
 # print(runNames)
-runNames = ['Cf Pb 2'] # the short name of the folder containing images (tif files)
+runNames = ['control0'] # the short name of the folder containing images (tif files)
 notesContent = []
 for runName in runNames:
     Images3 = []
@@ -229,10 +229,11 @@ for runName in runNames:
     if allEventsInFolder:
         eventsOfInterest = np.arange(len(eventPrefixes))
     else:
-        eventsOfInterest = np.array([12,15,18,21]) # 1-indexing
+        eventsOfInterest = np.array([28]) # 1-indexing
         eventsOfInterest = eventsOfInterest[eventsOfInterest <= len(eventPrefixes)]
         for i in range(len(eventsOfInterest)):
             eventsOfInterest[i] -= 1
+    numEvents = len(eventsOfInterest)
     # to-do: remove following lines
     # answerKeyPath = glob.glob(data_folder_path+os.path.sep+'known*.txt')[0]
     # answerKeyFile = open(answerKeyPath,'r')
@@ -286,7 +287,7 @@ for runName in runNames:
         codeFrame.append(detectedFrame)
         # keyFrame.append(int(answerKeyLines[eventNumber].split(' ')[0]))
         labels.append(eventLabel)
-        theseImages = extractForegroundMask(False,True,True,thisEventImages,ballParkFrame - 10,9,0,ballParkFrame+2)
+        theseImages = extractForegroundMask(False,False,True,thisEventImages,ballParkFrame - 10,9,0,0)
         # theseImages = thisEvent1
         tStamp = []
         for timestamp in thisEventFrameTimestamps:
@@ -316,10 +317,12 @@ for runName in runNames:
             #     Images1.append(cv2.resize(thisImages[frameNumber],(256,96)))
             # else:
             Images.append(thisImages[frameNumber])
-            if frameNumber <= detectedFrame + 10 and frameNumber >= detectedFrame:
-                Images3[eventNumber]= np.add(Images3[eventNumber],np.divide(thisImages[frameNumber],255))
+            if frameNumber <= detectedFrame + 150 and frameNumber >= detectedFrame:
+                Images3[-1]= np.add(Images3[-1],np.divide(thisImages[frameNumber],255))
+                # Images3[eventNumber]= np.add(Images3[eventNumber],np.divide(thisImages[frameNumber],255))
             if frameNumber <= detectedFrame + 0 and frameNumber >= detectedFrame:
-                Images4[eventNumber]= np.add(Images4[eventNumber],np.divide(thisEvent1[frameNumber],255))
+                Images4[-1]= np.add(Images4[-1],np.divide(thisEvent1[frameNumber],255))
+                # Images4[eventNumber]= np.add(Images4[eventNumber],np.divide(thisEvent1[frameNumber],255))
                 # pass
                 # Images4.append(thisImages[frameNumber])
                 # Images4.append(thisImages[frameNumber])
@@ -330,8 +333,10 @@ for runName in runNames:
             if frameNumber == eventLength - 1:
                 # Images4.append(thisImages[frameNumber])
                 pass
-        Images3[eventNumber] = np.divide(Images3[eventNumber],np.max([1,np.max(Images3[eventNumber])]))
-        Images4[eventNumber] = np.divide(Images4[eventNumber],np.max([1,np.max(Images4[eventNumber])]))
+        Images3[-1] = np.divide(Images3[-1],np.max([1,np.max(Images3[-1])]))
+        # Images3[eventNumber] = np.divide(Images3[eventNumber],np.max([1,np.max(Images3[eventNumber])]))
+        Images4[-1] = np.divide(Images4[-1],np.max([1,np.max(Images4[-1])]))
+        # Images4[eventNumber] = np.divide(Images4[eventNumber],np.max([1,np.max(Images4[eventNumber])]))
     makeBarHistGraphsSolo(labels,0.35,codeFrame,runName,False,False,folder+os.path.sep)
     newImage = np.zeros_like(Images3[0])
     newImage1 = np.zeros_like(Images4[0])
@@ -366,11 +371,11 @@ for runName in runNames:
     x = np.array([np.arange(len(newImage[0]))]*(len(newImage)))
     heatmap, xedges, yedges,placeholder = plt.hist2d(x.flatten(), y.flatten(), bins=(len(newImage[0]),len(newImage)),density=False,weights=np.divide(newImage.flatten(),len(Images3)),cmap=plt.cm.nipy_spectral)
     # newImage1 = newImage[:-1]
-    cy = np.sum(np.multiply(y[:-1],newImage1))/np.sum(newImage1)
-    cx = np.sum(np.multiply(x[:-1],newImage1))/np.sum(newImage1)
-    print(cx,cy)
-    plt.hlines(cy,0,len(newImage[0]),colors=['w'])
-    plt.vlines(cx,0,len(newImage),colors=['w'])
+    # cy = np.sum(np.multiply(y[:-1],newImage1))/np.sum(newImage1)
+    # cx = np.sum(np.multiply(x[:-1],newImage1))/np.sum(newImage1)
+    # print(cx,cy)
+    # plt.hlines(cy,0,len(newImage[0]),colors=['w'])
+    # plt.vlines(cx,0,len(newImage),colors=['w'])
     cbar = plt.colorbar()
     cbar.ax.set_xlabel('Density',fontsize=16)
     cbar.ax.tick_params(labelsize=12) 
@@ -380,7 +385,7 @@ for runName in runNames:
     plt.ylabel('Y (pixels)',fontsize=28)
     plt.xticks(fontsize=24)
     plt.yticks(fontsize=24)
-    modifyingTitle = 'thisEvent1 (w overlay) 10 frames X(15 not 9)'
+    modifyingTitle = 'thisEvent1 (wo overlay) 150 frames X(no backtracking + 9thresh 0blur)'
     plt.text(1,88,str(round(np.mean(codeFrame),2))+'+/-'+str(round(np.std(codeFrame),2)),fontsize = 30, c='w')
     plt.title(folder+' - '+runNames[0]+' - Snowball Nucleation Net Heat Map (N='+str(len(eventPrefixes))+')',fontsize=28)
     fig.tight_layout()
@@ -388,10 +393,10 @@ for runName in runNames:
     fig = plt.figure(figsize=(len(Images3[0][0])/10*np.ceil(np.sqrt(len(eventPrefixes))),len(Images3[0])/10*np.ceil(np.sqrt(len(eventPrefixes)))))
     plt.clf()
     for eventNumber in range(len(Images3)):
-        subPlot = plt.subplot(int(np.ceil(np.sqrt(len(eventPrefixes)))),int(np.ceil(np.sqrt(len(eventPrefixes)))),eventNumber+1)
+        subPlot = plt.subplot(int(np.ceil(np.sqrt(numEvents))),int(np.ceil(np.sqrt(numEvents))),eventNumber+1)
         subPlot.axis('scaled')
         # subPlot.set_title(str(eventNumber+1),size=50)
-        subPlot.text(1,15,str(eventNumber+1),fontsize=100,c='w')
+        subPlot.text(1,15,str(eventsOfInterest[eventNumber]+1),fontsize=100,c='w')
         subPlot.text(1,86,detectedFrames[eventNumber].split(',')[0],fontsize=100,c='w')
         # plt.subplot(int(np.ceil(np.sqrt(len(eventPrefixes)))),int(np.ceil(np.sqrt(len(eventPrefixes)))),eventNumber+1).set_title('Event '+str(eventNumber))
         # plt.xlabel('X',fontsize=20)
@@ -413,7 +418,7 @@ for runName in runNames:
         # if (eventNumber == 1):
         plt.hlines(cy,0,len(newImage[0]),colors=['w'])
         plt.vlines(cx,0,len(newImage),colors=['w'])
-        print(cx,cy)
+        # print(cx,cy)
         plt.xlim(0,len(newImage[0])-1)
         plt.ylim(len(newImage)-2,0)
         plt.axis('off')
