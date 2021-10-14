@@ -135,7 +135,7 @@ def extractForegroundMask(reverse: bool, mustExistInPreviousFrames: bool,static:
 def overlayFrames(frame1,frame2): # returns the composite frame of two frames
     return np.multiply(frame1,np.divide(frame2,255))
 def getEventsFromRun(runFolder): # str - name of grou p, str array - names of runs, str 2d array - timestamps in runs, str 2d array - filenames in runs
-    filename_RFG = glob.glob(runFolder + os.path.sep + '*.tiff') # make sure is tiff and not .tif possible source of error
+    filename_RFG = [os.path.join(runFolder,i) for i in os.listdir(runFolder)] # make sure is tiff and not .tif possible source of error
     groupName_RFG = os.path.basename(runFolder)
     runNames_RFG = []
     runImages_RFG = []
@@ -287,7 +287,15 @@ for runName in runNames:
         codeFrame.append(detectedFrame)
         # keyFrame.append(int(answerKeyLines[eventNumber].split(' ')[0]))
         labels.append(eventLabel)
-        theseImages = extractForegroundMask(False,False,True,thisEventImages,ballParkFrame - 10,9,0,0)
+        backCheck = False
+        staticBoy = True
+        histLeng = 50
+        thresh = 20
+        blur = 1
+        startingAt = 0
+        theseImages = extractForegroundMask(False,backCheck,staticBoy,thisEventImages,histLeng,thresh,blur,startingAt)
+        modifyingTitle = 'X(false,'+','.join([str(HOLD).lower() for HOLD in [backCheck,staticBoy,histLeng,thresh,blur,startingAt]])+')'
+        # modifyingTitle = 'X(false,false,true,50,100,15,0)'
         # theseImages = thisEvent1
         tStamp = []
         for timestamp in thisEventFrameTimestamps:
@@ -304,11 +312,10 @@ for runName in runNames:
         #     high = detectedFrame
         # low = int(np.max([0,low-np.max([(high-low)/2,5])]))
         # high = int(np.min([eventLength,high+np.max([(high-low)/2,5])]))
-        thisImages = []
+        thisImages = concatFrames(frames,theseImages,2)
         for frameNumber in range(eventLength):
-            thisImages.append(theseImages[frameNumber])
             # thisImages.append(cv2.resize(theseImages[frameNumber],(256,96)))
-        #     thisImages[frameNumber] = imgNumStamps(int(detectedFrame),7,0,thisImages[frameNumber])
+            thisImages[frameNumber] = imgNumStamps(int(detectedFrame),7,0,thisImages[frameNumber])
         # thisImages = eventFrameStamp(eventNumber,thisImages,eventPrefixes[eventNumber].replace('.',''),tStamp,True)
         for frameNumber in range(eventLength):
             # thisImages[frameNumber] = imgNumStamps(int(answerKeyLines[eventNumber].split(' ')[0]),20,0,thisImages[frameNumber])
@@ -317,8 +324,8 @@ for runName in runNames:
             #     Images1.append(cv2.resize(thisImages[frameNumber],(256,96)))
             # else:
             Images.append(thisImages[frameNumber])
-            if frameNumber <= detectedFrame + 150 and frameNumber >= detectedFrame:
-                Images3[-1]= np.add(Images3[-1],np.divide(thisImages[frameNumber],255))
+            if frameNumber <= detectedFrame + 200 and frameNumber >= detectedFrame:
+                Images3[-1]= np.add(Images3[-1],np.divide(theseImages[frameNumber],255))
                 # Images3[eventNumber]= np.add(Images3[eventNumber],np.divide(thisImages[frameNumber],255))
             if frameNumber <= detectedFrame + 0 and frameNumber >= detectedFrame:
                 Images4[-1]= np.add(Images4[-1],np.divide(thisEvent1[frameNumber],255))
@@ -385,7 +392,6 @@ for runName in runNames:
     plt.ylabel('Y (pixels)',fontsize=28)
     plt.xticks(fontsize=24)
     plt.yticks(fontsize=24)
-    modifyingTitle = 'thisEvent1 (wo overlay) 150 frames X(no backtracking + 9thresh 0blur)'
     plt.text(1,88,str(round(np.mean(codeFrame),2))+'+/-'+str(round(np.std(codeFrame),2)),fontsize = 30, c='w')
     plt.title(folder+' - '+runNames[0]+' - Snowball Nucleation Net Heat Map (N='+str(len(eventPrefixes))+')',fontsize=28)
     fig.tight_layout()
@@ -466,6 +472,7 @@ for runName in runNames:
     notesContent.append(runEventsNoteContent[:-1]+'\n')
 # writeAviVideo(videoName ='testVideo',frameRate = 1,allImages = Images3,openVideo = True,color = False)
 # writeAviVideo(videoName ='Full Runs - '+folder+' - control0',frameRate = 1,allImages = Images,openVideo = True,color = False)
+writeAviVideo(videoName = 'TestVideo',frameRate = 1,allImages = Images,openVideo = True,color = False)
 if False:
     writeAviVideo(videoName = folder+os.path.sep+'Full Runs - '+folder,frameRate = 1,allImages = Images,openVideo = False,color = False)
     txtFile = open(this_repo_path+os.path.sep+folder+os.path.sep+'eventNotes - '+folder+'.txt','w')

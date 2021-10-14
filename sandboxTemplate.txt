@@ -1,0 +1,22 @@
+Code features/wants:
+
+Make original movie
+Make movie with filters
+make movies with selected frames
+make .txt results file with detected image filename, frame number, x, y, time elapsed?, possibly/is invalid (maybe just an "X"?)
+frame bar chart and histograms ?? 
+time bar chart and histograms ??
+location plot w/ scatter and mean + std x,y pos
+event heat charts
+
+
+
+
+NAMING CONVENTIONS:
+RUN (i.e. a, e, Run00, run14)
+SOURCE (i.e. control0, control1, Cf Pb 2)
+TRIAL
+PRIMARY NUCLEATION EVENT (+ Frame)
+SECONDARY NUCLEATION EVENT(S) (+ Frame)
+
+Background subtractor:
