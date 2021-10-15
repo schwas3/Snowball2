@@ -69,16 +69,32 @@ run06 - control -
 run06 - Cs-137 - 6 ??? (LOOK AT THIS), 11 RP/DC/DL (CP 21), 13 RP/DC/DL *** (CP 16), 16 RP/DC/DL, 24 RP/DC/DL (good as well), 29 RP/DC (needs to be resolved), 48 RP/DC/DP ? (this is a good sample to show)
 
 run07
-run07
-run07
-
+run07 - 
+run07 - 
 
 run08
+run08 - 
+run08 - 
+
 run09
+run09 - 
+run09 - 
+
 run10
+run10 - 
+run10 - 
+
 run11
+run11 - UBe_thick_front_blue - 2,3(CP2),6,8,10,11,13,22,23,25,26,32,38,43,49,51
+run11 - control - 2?,3,4,7?,8,9,11?,14?,20,22,26,37
+
 run12
+run12 - AmBe_side - 7?,12*,13?,18?(**),20,21(CP20),22(CP),32,35?,36,37,39,40,42,
+run12 - control - 7,8?,10?,12/13?,14,15?,16(CP15?),18(double split?),19,20(CP18),22,23,24?,26,27,29,34,38?,39??,40,41,42,45?,(getting into PQ),47,48,50*,52?
+
 run13
+run13 - AmBe_side - PQ
+run13 - ctrl - PQ
 
 run14
 run14 - AmBe-top - PQ (TBD)
