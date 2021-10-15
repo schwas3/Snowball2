@@ -8,7 +8,9 @@ frame bar chart and histograms ??
 time bar chart and histograms ??
 location plot w/ scatter and mean + std x,y pos
 event heat charts
-
+MAKE IT RUN FASTER
+"net" event heat charts need revisiting before being used - methodology with weighting values is difficult - normalization may lead to overvaluing positions from late-frame primary nucleation trials
+Replace glob with os methods (i.e. no need for '*' notation which is slower than os.listdir)
 
 
 
@@ -20,3 +22,24 @@ PRIMARY NUCLEATION EVENT (+ Frame)
 SECONDARY NUCLEATION EVENT(S) (+ Frame)
 
 Background subtractor:
+
+IDEA: FURTHER IMPROVE SELECTION FOR HISTORY BY MAKING IT Length 50 (for example) and then set learning rate to 0 after reaching ballParkFrame - 10 -> 50 frames before detection (might not do anything)
+
+Exception handling - resolve trials with 'X' stamps
+Exception handling - detect unusual timestamps, skips/jumps in timestamps, etc.
+Exception handling - detect higheer density images (i.e. high framerate)
+
+Comparison of groupings:
+common run
+common source
+compare trials within same folder
+common run position comparison (needs to be reviewed to ensure proper handling of mismatched dimensions)
+Compare heat maps?
+
+Multiple Scatter Results? - 
+
+
+
+cuts
+
+run02 ambe 19

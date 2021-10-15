@@ -144,17 +144,20 @@ def getEventsFromRun(runFolder): # str - name of grou p, str array - names of ru
     valid_RFG = []
     for i in filename_RFG:
         tif_RFG = os.path.basename(i)
-        runName_RFG, timestamp_RFG = tif_RFG.replace('.tiff','').replace('.tif','').split('_')
-        if runName_RFG != currRunName_RFG:
-            currRunName_RFG = runName_RFG
-            runNames_RFG.append(runName_RFG)
-            runTimestamps_RFG.append([])
-            valid_RFG.append(True)
-            runImages_RFG.append([])
-        runImages_RFG[-1].append(cv2.imread(i,0))
-        if timestamp_RFG[-1] == 'X':
-            valid_RFG[-1] = False
-        runTimestamps_RFG[-1].append(timestamp_RFG.replace('X',''))
+        try:
+            runName_RFG, timestamp_RFG = tif_RFG.replace('.tiff','').replace('.tif','').split('_')
+            if runName_RFG != currRunName_RFG:
+                currRunName_RFG = runName_RFG
+                runNames_RFG.append(runName_RFG)
+                runTimestamps_RFG.append([])
+                valid_RFG.append(True)
+                runImages_RFG.append([])
+            runImages_RFG[-1].append(cv2.imread(i,0))
+            if timestamp_RFG[-1] == 'X':
+                valid_RFG[-1] = False
+            runTimestamps_RFG[-1].append(timestamp_RFG.replace('X',''))
+        except:
+            pass
     return groupName_RFG, runNames_RFG, runTimestamps_RFG, runImages_RFG, valid_RFG
 def concatFrames(image1,image2,axis):
     return np.concatenate((image1,image2),axis)
@@ -206,12 +209,12 @@ github_path, this_repo_name = os.path.split(this_repo_path) # gets the users git
 data_repo_name = "Snowball9"
 data_repo_path = github_path + os.path.sep + data_repo_name
 data_folder_name = 'SNOWBALL CROPPED IMAGES'
-folder = 'Run03'
+folder = 'd'
 runNames = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.sep + folder + os.path.sep + '*')
 for i in range(len(runNames)):
     runNames[i] = os.path.basename(runNames[i])
 # print(runNames)
-runNames = ['control'] # the short name of the folder containing images (tif files)
+# runNames = ['AmBe-side'] # the short name of the folder containing images (tif files)
 notesContent = []
 for runName in runNames:
     Images3 = []
@@ -290,8 +293,8 @@ for runName in runNames:
         backCheck = False
         staticBoy = True
         histLeng = detectedFrame - 5
-        thresh = 200
-        blur = 9
+        thresh = 150
+        blur = 1
         startingAt = 0
         openYorN = False
         theseImages = extractForegroundMask(False,backCheck,staticBoy,thisEventImages,histLeng,thresh,blur,startingAt)
@@ -398,9 +401,9 @@ for runName in runNames:
     # plt.title(folder+' - '+runNames[0]+' - Primary Nucleation Event Location Map N='+str(len(yPos))+'('+str(len(eventPrefixes))+')',fontsize=16)
     fig.tight_layout()
     plt.text(1,len(Images3[0])-5,str(round(np.mean(codeFrame),2))+'+/-'+str(round(np.std(codeFrame),2)),fontsize = 16, c='w')
-    plt.title(folder+' - '+runNames[0]+' - Snowball Nucleation Net Heat Map (N='+str(len(eventPrefixes))+')',fontsize=16)
+    plt.title(folder+' - '+runName+' - Snowball Nucleation Net Heat Map (N='+str(len(eventPrefixes))+')',fontsize=16)
     fig.tight_layout()
-    plt.savefig(this_repo_path+os.path.sep+folder+' - '+runNames[0]+' - heat map ALL - '+modifyingTitle+'.jpg')
+    plt.savefig(this_repo_path+os.path.sep+folder+' - '+runName+' - heat map ALL - '+modifyingTitle+'.jpg')
     fig = plt.figure(figsize=(len(Images3[0][0])/10*np.ceil(np.sqrt(len(eventPrefixes))),len(Images3[0])/10*np.ceil(np.sqrt(len(eventPrefixes)))))
     plt.clf()
     xPos,yPos,posName=[],[],[]
@@ -441,9 +444,9 @@ for runName in runNames:
     # xPos = xPos[1:]
     # yPos = yPos[1:]
     # posName = posName[1:]
-    plt.suptitle(folder+' - '+runNames[0]+' - Snowball Nucleation Event Heat Maps (N='+str(len(eventPrefixes))+')',fontsize=125,y=.992)
+    plt.suptitle(folder+' - '+runName+' - Snowball Nucleation Event Heat Maps (N='+str(len(eventPrefixes))+')',fontsize=125,y=.992)
     fig.tight_layout()
-    plt.savefig(this_repo_path+os.path.sep+folder+' - '+runNames[0]+' - event heat maps - '+modifyingTitle+'.jpg')
+    plt.savefig(this_repo_path+os.path.sep+folder+' - '+runName+' - event heat maps - '+modifyingTitle+'.jpg')
     # plt.show()
     fig = plt.figure(figsize=(len(Images3[0][0])/8,len(Images3[0])/10))
     plt.clf()
@@ -459,9 +462,9 @@ for runName in runNames:
     plt.xlim(0,len(newImage[0])-1)
     plt.ylim(len(newImage)-2,0)
     plt.legend(fontsize=16,labelspacing=1)
-    plt.title(folder+' - '+runNames[0]+' - Primary Nucleation Event Location Map N='+str(len(yPos))+'('+str(len(eventPrefixes))+')',fontsize=24)
+    plt.title(folder+' - '+runName+' - Primary Nucleation Event Location Map N='+str(len(yPos))+'('+str(len(eventPrefixes))+')',fontsize=24)
     fig.tight_layout()
-    plt.savefig(this_repo_path+os.path.sep+folder+' - '+runNames[0]+' - event location scatter.jpg')
+    plt.savefig(this_repo_path+os.path.sep+folder+' - '+runName+' - event location scatter.jpg')
     if False:
         newImage1 = np.divide(newImage1,np.max(newImage1)/255)
         # newImage1 = cv2.merge([np.divide(newImage1,1),newImage1,newImage1])#np.zeros_like(newImage1),np.zeros_like(newImage1)])

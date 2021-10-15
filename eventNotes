@@ -4,7 +4,7 @@ RP = Reflection Possible
 DC = Double Check (No great reason to doubt double snowball)
 DL = Double Likely (High confidence that a double snowball event took place)
 F = Frame(s)
-CW = Compare with
+CW/CP = Compare with
 
 a
 a 1 of 2
@@ -49,18 +49,48 @@ Run00
 Run01
 
 Run02
+Run02 - AmBe - 1?,3,7(CP3),***17***(good),18?,20(CP18 doubt??),22(CP),25(CP),28(CP25),37?(bubble?),40?(idk),47?(symmetry??)
+Run02 - control - 5,10,12,22,23,28,32,33,(34 to CP 33), 36 (double splits?),38,40(CP36?),49,50(meh),51(CP40/36),52(see lower center),53,54,56(explain shadow?),57
 
 Run03
+Run03 - AmBe - 1(NO),5(maybe idk),9(CP10),10(CP9),11(looks really good),13(unlikely CP9/10),15 RP?,17 RP(could go either way),26 possible PQ,27(CP26),29 RP/PQ(CP 30,37,38,46,53),43 PQ(check this),48(CP31),51(good one),53(also good one, CP 53)
+Run03 - control - 
 
 run04
+run04 - control - 4 RL/DC/DL? (**), 9 RL/RP/DC ? (CP Cs-137 4/5/8/19), 12 RP/DC, 13 RL/RP/DC (How can the code output X/Y with these kind of images???), 14 RL/RP CP 13, 21 RP/DC/DL (**), 22 RP/DC/DL (CP 21 **), 23 (** please resolve), 25 (good comparison to 4/5/8/19 etc), 33 ?? (yikes), 34 (cp 25 etc), 39 RL/RP/DC, 43 RP/DC, 47 DC, 
+run04 - Cs-137 - 4 (CP 5/8/19), RP/DC/DL **, 7 RP/DC, 8 (CP 4/19), 13 RP/DC/DL *** (triple??), 20 RL/RP (**???), 34 RP/DC/DL (pretty good), 40 RP/DL (this is a good one), 
 
 run05
 run05 - control - 
-run05 - Cs-137 - 15 RP/DL/DP (double check - symmetry?), 16 RL/RP (compare with 15??), 21 RL/RP/DC/DL (CP 11), 35 DP (THIS IS IT), 42 RL
+run05 - Cs-137 - 15 RP/DL/DP (double check - symmetry?), 16 RL/RP (compare with 15??), 21 RL/RP/DC/DL (CP 11), 35 DL/DP (THIS IS IT), 42 RL
 
 run06
 run06 - control - 
 run06 - Cs-137 - 6 ??? (LOOK AT THIS), 11 RP/DC/DL (CP 21), 13 RP/DC/DL *** (CP 16), 16 RP/DC/DL, 24 RP/DC/DL (good as well), 29 RP/DC (needs to be resolved), 48 RP/DC/DP ? (this is a good sample to show)
+
+run07
+run07
+run07
+
+
+run08
+run09
+run10
+run11
+run12
+run13
+
+run14
+run14 - AmBe-top - PQ (TBD)
+run14 - ctrl - really PQ (TBD?)
+
+
+
+
+
+
+
+
 
 
 # Old note # c - control0 - 10 (and 18) - How do I classify the "where" of this event? 2 snowballs? (i think NO it is not two snowballs but I need clarification)

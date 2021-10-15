@@ -20,10 +20,10 @@ muonVetoIndicesPath = 'C:\\Users\\Scott\\Downloads\\ForScott2'
 resultsPaths = 'C:\\Users\\Scott\\Documents\\GitHub\\Snowball6\\Bar and Hist Figs'
 imagesPaths = 'C:\\Users\\Scott\\Documents\\GitHub\\Snowball9\\SNOWBALL CROPPED IMAGES'
 folder2 = 'E'
-folder2 = 'Run00'
+folder2 = 'Run09'
 folder = 'Run'+folder2
 folder = folder2[:3]+folder2[3].replace('0','')+folder2[4:]
-runName2 = 'ambe_pb'
+runName2 = 'AmBe-blueLED'
 runName = runName2.replace(' ','').replace('-','').replace('sss','').replace('pffb','').replace('_','')
 # runName = 'ambe'
 
