@@ -209,12 +209,12 @@ github_path, this_repo_name = os.path.split(this_repo_path) # gets the users git
 data_repo_name = "Snowball9"
 data_repo_path = github_path + os.path.sep + data_repo_name
 data_folder_name = 'SNOWBALL CROPPED IMAGES'
-folder = 'd'
-runNames = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.sep + folder + os.path.sep + '*')
-for i in range(len(runNames)):
-    runNames[i] = os.path.basename(runNames[i])
+folder = 'Run05'
+# runNames = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.sep + folder + os.path.sep + '*')
+# for i in range(len(runNames)):
+#     runNames[i] = os.path.basename(runNames[i])
 # print(runNames)
-# runNames = ['AmBe-side'] # the short name of the folder containing images (tif files)
+runNames = ['Cs-137'] # the short name of the folder containing images (tif files)
 notesContent = []
 for runName in runNames:
     Images3 = []
@@ -256,7 +256,8 @@ for runName in runNames:
             thisEventImages.append(thisEventImages.pop(0)) # the 0-th frame is removed and added to the end of the event images
             thisEventFrameTimestamps.append(thisEventFrameTimestamps.pop(0)) # the 0-th frame is removed and added to the end of the event images
         frames = []
-        thisEventImages = normalizePixelValues(thisEventImages,30,225) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
+        # thisEventImages = normalizePixelValues(thisEventImages,30,225) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
+        thisEventImages = cv2.normalize(np.array(thisEventImages),np.zeros_like(thisEventImages),0,255,cv2.NORM_MINMAX) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
         Images3.append(np.zeros_like(thisEventImages[0]))
         Images4.append(np.zeros_like(thisEventImages[0]))
         for frameNumber in range(eventLength):
@@ -291,11 +292,11 @@ for runName in runNames:
         # keyFrame.append(int(answerKeyLines[eventNumber].split(' ')[0]))
         labels.append(eventLabel)
         backCheck = False
-        staticBoy = True
-        histLeng = detectedFrame - 5
-        thresh = 150
-        blur = 1
-        startingAt = 0
+        staticBoy = False # true
+        histLeng = 10 # ballParkFrame - 5
+        thresh = 25 # 150
+        blur = 1 # 1
+        startingAt = 0 # 0
         openYorN = False
         theseImages = extractForegroundMask(False,backCheck,staticBoy,thisEventImages,histLeng,thresh,blur,startingAt)
         modifyingTitle = 'X(false,'+','.join([str(holding).lower() for holding in [backCheck,staticBoy,'detectedFrame-5',thresh,blur,startingAt]])+')'

@@ -205,7 +205,7 @@ github_path, this_repo_name = os.path.split(this_repo_path) # gets the users git
 data_repo_name = "Snowball9"
 data_repo_path = github_path + os.path.sep + data_repo_name
 data_folder_name = 'SNOWBALL CROPPED IMAGES'
-folder = 'a'
+folder = 'Run09'
 # try: 
 #     os.mkdir(this_repo_path+os.path.sep+folder) 
 # except OSError as error: 
@@ -215,7 +215,7 @@ folder = 'a'
 # for i in range(len(runNames)):
 #     runNames[i] = os.path.basename(runNames[i])
 # print(runNames)
-runNames = ['control0'] # the short name of the folder containing images (tif files)
+runNames = ['AmBe-blueled'] # the short name of the folder containing images (tif files)
 notesContent = []
 for runName in runNames:
     runEventsNoteContent = runName+', Invalid Events: '
@@ -227,11 +227,11 @@ for runName in runNames:
     data_folder_path = data_repo_path + os.path.sep + data_folder_name # THIS LINE MUST BE CORRECT EVERYTHING ELSE IS NOT ESSENTIAL
     runName, eventPrefixes, eventFrameTimestamps, runEventImages, validRunEvents = getEventsFromRun(data_folder_path) # calls getRunsFromGroup data_folder_path MUST BE A COMPLETE PATH, ALL
     print(str(runName)+'/'+str(len(eventPrefixes)))
-    allEventsInFolder = True
+    allEventsInFolder = False
     if allEventsInFolder:
         eventsOfInterest = np.arange(len(eventPrefixes))
     else:
-        eventsOfInterest = np.array([28]) # 1-indexing
+        eventsOfInterest = np.array([1]) # 1-indexing
         eventsOfInterest = eventsOfInterest[eventsOfInterest <= len(eventPrefixes)]
         for i in range(len(eventsOfInterest)):
             eventsOfInterest[i] -= 1
@@ -306,11 +306,11 @@ for runName in runNames:
         # high = int(np.min([eventLength,high+np.max([(high-low)/2,5])]))
         thisImages = []
         for frameNumber in range(eventLength):
-            thisImages.append(cv2.resize(theseImages[frameNumber],(128,96)))
+            thisImages.append(theseImages[frameNumber])
             thisImages[frameNumber] = imgNumStamps(int(detectedFrame),7,0,thisImages[frameNumber])
         thisImages = eventFrameStamp(eventNumber,frames,eventPrefixes[eventNumber].replace('.',''),tStamp,False)
         for i in range(len(thisEventFrameTimestamps)-2):
-            deltaT = int(round(eval(thisEventFrameTimestamps[i+1]+'-'+thisEventFrameTimestamps[i])*4,1)*25)
+            deltaT = int(round(eval(thisEventFrameTimestamps[i+1]+'-'+thisEventFrameTimestamps[i]),2)*100)
             for j in range(deltaT):
                 Images.append(concatFrames(np.add(np.multiply(thisImages[i],(deltaT-j)/deltaT),np.multiply(thisImages[i+1],j/deltaT)),thisImages[i],1))
         for frameNumber in range(eventLength):
@@ -331,7 +331,7 @@ for runName in runNames:
         txtFile.write(fileContents)
         txtFile.close()
     # notesContent.append(runEventsNoteContent[:-1]+'\n')
-writeAviVideo(videoName = 'Full Run - a - testvideo',frameRate = 100,allImages = Images,openVideo = True,color = False)
+writeAviVideo(videoName = 'Full Run - run09 - AmBe-blueled - testvideo',frameRate = 100,allImages = Images,openVideo = True,color = False)
 # writeAviVideo(videoName = folder+os.path.sep+'Full Runs - '+folder,frameRate = 1,allImages = Images,openVideo = False,color = False)
 if False:
     if not exists(this_repo_path+os.path.sep+folder+os.path.sep+'eventNotes - '+folder+'.txt'):

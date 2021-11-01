@@ -10,12 +10,12 @@ this_repo_path, this_file_name = os.path.split(this_file_path) # gets the path t
 github_path, this_repo_name = os.path.split(this_repo_path) # gets the users github folder location and the repo name
 data_repo_name = "Snowball7"
 data_repo_path = github_path + os.path.sep + data_repo_name
-folder = 'b'
-subfolder = 'ambe0'
+folder = 'Run05'
+subfolder = 'Cs-137 Event'
 data_folder_path = data_repo_path+os.path.sep+'SNOWBALL CROPPED IMAGES'
 data_folder_path += os.path.sep + folder
 
-filenames = glob.glob(data_folder_path+os.path.sep + subfolder+os.path.sep+'*.tiff')
+filenames = glob.glob(data_folder_path+os.path.sep + subfolder+os.path.sep+'*.bmp')
 # filenames = glob.glob(data_folder_path+os.path.sep + '*'+os.path.sep+'\u2705.bmp')
 
 # filenames = glob.glob(data_folder_path+os.path.sep+'*'+os.path.sep+'*.bmp')
@@ -111,12 +111,13 @@ def useInput(event,x,y,flags,param):
             image = cv2.imread(filenames[index])
         img = rotate_image(image,rot)
         # cv2.imshow('original',cv2.resize(img,(int(scale*(x2-x1+40)),int(scale*(y2-y1+40)))))
-        cv2.imshow('original',cv2.resize(cv2.rectangle(img,(np.min([0,x1-1]),np.min([0,y1-1])),(x2+1,y2+1),(255,0,0),1)[np.max([0,y1-20]):y2+20,np.max([0,x1-20]):x2+20],(int(scale*(x2-x1+40)),int(scale*(y2-y1+40)))))
+        cv2.imshow('original',cv2.resize(cv2.rectangle(img,(np.max([0,x1-1]),np.max([0,y1-1])),(x2+1,y2+1),(255,0,0),1)[np.max([0,y1-20]):y2+20,np.max([0,x1-20]):x2+20],(int(scale*(x2-x1+40)),int(scale*(y2-y1+40)))))
+        # cv2.imshow('original',cv2.resize(cv2.rectangle(img,(np.min([0,x1-1]),np.min([0,y1-1])),(x2+1,y2+1),(255,0,0),1)[np.max([0,y1-20]):y2+20,np.max([0,x1-20]):x2+20],(int(scale*(x2-x1+40)),int(scale*(y2-y1+40)))))
         # cv2.imshow('original',cv2.resize(cv2.rectangle(img,(x1-1,y1-1),(x2+1,y2+1),(255,0,0),1)[y1-20:y2+20,x1-20:x2+20],(int(scale*(x2-x1+40)),int(scale*(y2-y1+40)))))
         # return np.array([[0,0],[]])
     # return 
 a = 2
-A = '0 110 0 85 0'
+A = '383 521 362 466 0'
 x1,x2,y1,y2,rot = [int(i) for i in A.split()]
 rot /= 10
 if a == 1: # image analysis code
@@ -127,7 +128,7 @@ if a == 1: # image analysis code
         # img = cv2.rectangle(img,(x1-1,y1-1),(x2+1,y2+1),(255,0,0),1)
         img = rotate_image(image,rot)
         # cv2.imshow('original',cv2.resize(img,(int(scale*(x2-x1+40)),int(scale*(y2-y1+40)))))
-        cv2.imshow('original',cv2.resize(cv2.rectangle(img,(np.min([0,x1-1]),np.min([0,y1-1])),(x2+1,y2+1),(255,0,0),1)[np.max([0,y1-20]):y2+20,np.max([0,x1-20]):x2+20],(int(scale*(x2-x1+40)),int(scale*(y2-y1+40)))))
+        cv2.imshow('original',cv2.resize(cv2.rectangle(img,(np.max([0,x1-1]),np.max([0,y1-1])),(x2+1,y2+1),(255,0,0),1)[np.max([0,y1-20]):y2+20,np.max([0,x1-20]):x2+20],(int(scale*(x2-x1+40)),int(scale*(y2-y1+40)))))
         if cv2.waitKey(0):
             break
     cv2.destroyAllWindows()
@@ -145,11 +146,13 @@ if a == 2: # make tiffs code
             # img = rotate_image(img,rot)
             # img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
             img = img[y1:y2,x1:x2]
+            print('pepsi')
             cv2.imwrite(filename,img)
         except:
-            img = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
-            img = img[y1:y2,x1:x2]
-            cv2.imwrite(filename.split('.bmp')[0]+'X.tiff',img)
+            print('cola')
+            # # img = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
+            # img = img[y1:y2,x1:x2]
+            # cv2.imwrite(filename.split('.bmp')[0]+'X.tiff',img)
 if a == 3: #replace code
     for filename in filenames:
         if filename != filename.split(folder)[0]+folder+filename.split(folder)[1].replace(' ',''):
