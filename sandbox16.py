@@ -1,5 +1,6 @@
  #!~/.anaconda3/bin/python
 import math
+from PIL import Image
 from PIL.Image import new
 import numpy as np
 import time as t1
@@ -99,14 +100,12 @@ def normalizePixelValues(eventImages,lowerLimit,upperLimit):
     images = np.where(images < 0,0,images)
     holder = np.zeros_like(images)
     mid = int(np.mean(images))
-    print(mid)
     # mid = 240
     # images = cv2.normalize(images,holder,0,255,cv2.NORM_MINMAX)
     # images = np.divide(images,np.mean(images)/255*2)
     if mid > 255/2:
         bottom = np.min([lowerLimit,2*mid-255])
         # bottom = 2*mid-255
-        print(bottom)
         # bottom = 2*mid-255
         images = np.multiply(np.subtract(images,bottom),255/(255-bottom))
         # images = cv2.normalize(images,holder,bottom*255/(bottom-255),255,cv2.NORM_MINMAX)
@@ -238,12 +237,12 @@ github_path, this_repo_name = os.path.split(this_repo_path) # gets the users git
 data_repo_name = "Snowball9"
 data_repo_path = github_path + os.path.sep + data_repo_name
 data_folder_name = 'SNOWBALL CROPPED IMAGES'
-folder = 'Run05'
+folder = 'B'
 # runNames = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.sep + folder + os.path.sep + '*')
 # for i in range(len(runNames)):
 #     runNames[i] = os.path.basename(runNames[i])
 # print(runNames)
-runNames = ['Cs-137'] # the short name of the folder containing images (tif files)
+runNames = ['Control1'] # the short name of the folder containing images (tif files)
 notesContent = []
 for runName in runNames:
     Images3 = []
@@ -257,11 +256,11 @@ for runName in runNames:
     data_folder_path = data_repo_path + os.path.sep + data_folder_name # THIS LINE MUST BE CORRECT EVERYTHING ELSE IS NOT ESSENTIAL
     runName, eventPrefixes, eventFrameTimestamps, runEventImages, validRunEvents = getEventsFromRun(data_folder_path) # calls getRunsFromGroup data_folder_path MUST BE A COMPLETE PATH, ALL
     print(str(runName)+'/'+str(len(eventPrefixes)))
-    allEventsInFolder = False
+    allEventsInFolder = True
     if allEventsInFolder:
         eventsOfInterest = np.arange(len(eventPrefixes))
     else:
-        eventsOfInterest = np.array([35,38,42,10,12,15]) # 1-indexing
+        eventsOfInterest = np.array([7]) # 1-indexing
         eventsOfInterest = eventsOfInterest[eventsOfInterest <= len(eventPrefixes)]
         for i in range(len(eventsOfInterest)):
             eventsOfInterest[i] -= 1
@@ -287,7 +286,8 @@ for runName in runNames:
         if thisEventFrameTimestamps[0][0] == '0':
             thisEventImages.append(thisEventImages.pop(0)) # the 0-th frame is removed and added to the end of the event images
             thisEventFrameTimestamps.append(thisEventFrameTimestamps.pop(0)) # the 0-th frame is removed and added to the end of the event images
-        thisEventImages = normalizePixelValues(thisEventImages,50,205) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
+        thisEventImages = cv2.normalize(np.array(thisEventImages),np.zeros_like(thisEventImages),0,255,cv2.NORM_MINMAX) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
+        # thisEventImages = cv2.normalize(thisEventImages,50,205) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
         Images3.append(np.zeros_like(thisEventImages[0]))
         Images4.append(np.zeros_like(thisEventImages[0]))
         # thisEventImages = normalizePixelValues(thisEventImages,30,225) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
@@ -324,13 +324,15 @@ for runName in runNames:
         histLeng = ballParkFrame - 10
         thresh = 100
         blur = 35
-        startingAt = ballParkFrame + 2
+        startingAt = 0
         openYorN = True
-        theseImages = extractForegroundMask(False,False,staticBoy,thisEventImages,histLeng,thresh,blur,startingAt)
-        theseImages1 = extractForegroundMask(False,backCheck,staticBoy,thisEventImages,histLeng,thresh,blur,startingAt)
-        theseImages2 = extractForegroundMask(False,False,staticBoy,thisEventImages,histLeng,9,0,startingAt)
-        theseImages3 = extractForegroundMask(False,backCheck,staticBoy,thisEventImages,histLeng,9,0,startingAt)
-        modifyingTitle = 'X(false,'+','.join([str(holding).lower() for holding in [backCheck,staticBoy,histLeng,thresh,blur,startingAt]])+')'
+        theseImages = frames
+        # theseImages1 = extractForegroundMask(False,backCheck,staticBoy,thisEventImages,histLeng,thresh,blur,startingAt)
+        theseImages1 = extractForegroundMask(False,backCheck,staticBoy,thisEventImages,50,thresh,blur,0)
+        theseImages2 = extractForegroundMask(False,False,staticBoy,thisEventImages,50,thresh,blur,0)
+        theseImages3 = extractForegroundMask(False,True,True,thisEventImages,ballParkFrame - 10,9,0,ballParkFrame+2) # changed hist from - 10 to - 5 and ballparkframe + 2 from + 5
+        # theseImages3 = extractForegroundMask(False,backCheck,staticBoy,thisEventImages,histLeng,9,0,startingAt)
+        # modifyingTitle = 'X(false,'+','.join([str(holding).lower() for holding in [backCheck,staticBoy,histLeng,thresh,blur,startingAt]])+')'
         # modifyingTitle = 'X(false,false,true,50,100,15,0)'
         # theseImages = thisEvent1
         tStamp = []
@@ -348,10 +350,15 @@ for runName in runNames:
         #     high = detectedFrame
         # low = int(np.max([0,low-np.max([(high-low)/2,5])]))
         # high = int(np.min([eventLength,high+np.max([(high-low)/2,5])]))
-        thisImages = concatFrames(theseImages,theseImages1,2)
-        for frameNumber in range(eventLength):
-            # thisImages.append(cv2.resize(theseImages[frameNumber],(256,96)))
-            thisImages[frameNumber] = imgNumStamps(int(detectedFrame),7,0,thisImages[frameNumber])
+        # thisImages = concatFrames(theseImages,concatFrames(theseImages1,theseImages2,2),2)[:detectedFrame+10]
+        # thisImages = concatFrames(concatFrames(concatFrames(concatFrames(theseImages,theseImages2,2),thisEvent2,2),theseImages3,2),thisEvent1,2)[detectedFrame-10:detectedFrame+25]
+        thisImages = concatFrames(concatFrames(concatFrames(concatFrames(theseImages,theseImages2,1),thisEvent2,1),theseImages3,1),thisEvent1,1)[detectedFrame-10:detectedFrame+25]
+        try:Images = concatFrames(Images,thisImages,0)
+        except:Images=thisImages
+        # thisImages = concatFrames(theseImages,theseImages1,2)
+        # for frameNumber in range(eventLength):
+        #     # thisImages.append(cv2.resize(theseImages[frameNumber],(256,96)))
+        #     thisImages[frameNumber] = imgNumStamps(int(detectedFrame),7,0,thisImages[frameNumber])
         # thisImages = eventFrameStamp(eventNumber,thisImages,eventPrefixes[eventNumber].replace('.',''),tStamp,True)
         lowVal,highVal = 100,155
         # imagesimages0 = normalizePixelValues(frames,lowVal,highVal) # mine
@@ -366,7 +373,7 @@ for runName in runNames:
             # if runName == 'control2' or runName == 'control3' or runName == 'old':
             #     Images1.append(cv2.resize(thisImages[frameNumber],(256,96)))
             # else:
-            Images.append(concatFrames(concatFrames(theseImages[frameNumber],theseImages1[frameNumber],0),concatFrames(theseImages2[frameNumber],theseImages3[frameNumber],0),1))
+            # Images.append(concatFrames(concatFrames(theseImages[frameNumber],theseImages1[frameNumber],0),concatFrames(theseImages2[frameNumber],theseImages3[frameNumber],0),0))
             # if frameNumber <= detectedFrame + 200 and frameNumber >= detectedFrame:
             #     Images3[-1]= np.add(Images3[-1],np.divide(theseImages[frameNumber],255))
             #     # Images3[eventNumber]= np.add(Images3[eventNumber],np.divide(thisImages[frameNumber],255))
@@ -387,7 +394,8 @@ for runName in runNames:
         # # Images3[eventNumber] = np.divide(Images3[eventNumber],np.max([1,np.max(Images3[eventNumber])]))
         # Images4[-1] = np.divide(Images4[-1],np.max([1,np.max(Images4[-1])]))
         # Images4[eventNumber] = np.divide(Images4[eventNumber],np.max([1,np.max(Images4[eventNumber])]))
-    break
+            pass
+    continue
     makeBarHistGraphsSolo(labels,0.35,codeFrame,runName,False,False,folder+os.path.sep)
     newImage = np.zeros_like(Images3[0])
     newImage1 = np.zeros_like(Images4[0])
@@ -545,7 +553,7 @@ for runName in runNames:
     notesContent.append(runEventsNoteContent[:-1]+'\n')
 # writeAviVideo(videoName ='testVideo',frameRate = 1,allImages = Images3,openVideo = True,color = False)
 # writeAviVideo(videoName ='Full Runs - '+folder+' - control0',frameRate = 1,allImages = Images,openVideo = True,color = False)
-if openYorN:writeAviVideo(videoName = 'TestVideoBacktracking',frameRate = 7.5,allImages = Images,openVideo = openYorN,color = False)
+if openYorN:writeAviVideo(videoName = 'TestVideoBacktrackingThisEvent3',frameRate = 7.5,allImages = Images,openVideo = openYorN,color = False)
 if False:
     writeAviVideo(videoName = folder+os.path.sep+'Full Runs - '+folder,frameRate = 1,allImages = Images,openVideo = False,color = False)
     txtFile = open(this_repo_path+os.path.sep+folder+os.path.sep+'eventNotes - '+folder+'.txt','w')

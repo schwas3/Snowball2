@@ -291,15 +291,18 @@ for runName in runNames:
         codeFrame.append(detectedFrame)
         # keyFrame.append(int(answerKeyLines[eventNumber].split(' ')[0]))
         labels.append(eventLabel)
-        backCheck = False
-        staticBoy = False # true
-        histLeng = 10 # ballParkFrame - 5
-        thresh = 25 # 150
-        blur = 1 # 1
-        startingAt = 0 # 0
+        backCheck = True
+        staticBoy = True
+        histLeng = detectedFrame - 5
+        thresh = 150
+        blur = 1
+        startingAt = 200
         openYorN = False
         theseImages = extractForegroundMask(False,backCheck,staticBoy,thisEventImages,histLeng,thresh,blur,startingAt)
-        modifyingTitle = 'X(false,'+','.join([str(holding).lower() for holding in [backCheck,staticBoy,'detectedFrame-5',thresh,blur,startingAt]])+')'
+        # theseImages2 = extractForegroundMask(False,backCheck,True,thisEventImages,detectedFrame-5,150,1,startingAt)
+        # for frameNumber in range(eventLength):
+        #     theseImages[frameNumber] = overlayFrames(theseImages[frameNumber],theseImages2[frameNumber])
+        modifyingTitle = 'Xstar1(false,'+','.join([str(holding).lower() for holding in [backCheck,staticBoy,'detectedFrame - 5',thresh,blur,startingAt]])+')'
         # modifyingTitle = 'X(false,false,true,50,100,15,0)'
         # theseImages = thisEvent1
         tStamp = []
@@ -329,7 +332,7 @@ for runName in runNames:
             #     Images1.append(cv2.resize(thisImages[frameNumber],(256,96)))
             # else:
             Images.append(thisImages[frameNumber])
-            if frameNumber <= detectedFrame + 200 and frameNumber >= detectedFrame:
+            if frameNumber <= detectedFrame + 200 and frameNumber >= detectedFrame-5:
                 Images3[-1]= np.add(Images3[-1],np.divide(theseImages[frameNumber],255))
                 # Images3[eventNumber]= np.add(Images3[eventNumber],np.divide(thisImages[frameNumber],255))
             if frameNumber <= detectedFrame + 0 and frameNumber >= detectedFrame:
