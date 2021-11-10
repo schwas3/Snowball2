@@ -1,0 +1,4 @@
+how to do multiple scatters:
+
+how does color vs BW work...?
+Need to experiment with how to make color maps (might be similar to BW because background subtraction but with color - may even be an improvement)

@@ -228,11 +228,11 @@ for runName in runNames:
     data_folder_path = data_repo_path + os.path.sep + data_folder_name # THIS LINE MUST BE CORRECT EVERYTHING ELSE IS NOT ESSENTIAL
     runName, eventPrefixes, eventFrameTimestamps, runEventImages, validRunEvents = getEventsFromRun(data_folder_path) # calls getRunsFromGroup data_folder_path MUST BE A COMPLETE PATH, ALL
     print(str(runName)+'/'+str(len(eventPrefixes)))
-    allEventsInFolder = True
+    allEventsInFolder = False
     if allEventsInFolder:
         eventsOfInterest = np.arange(len(eventPrefixes))
     else:
-        eventsOfInterest = np.array([28]) # 1-indexing
+        eventsOfInterest = np.array([35]) # 1-indexing
         eventsOfInterest = eventsOfInterest[eventsOfInterest <= len(eventPrefixes)]
         for i in range(len(eventsOfInterest)):
             eventsOfInterest[i] -= 1

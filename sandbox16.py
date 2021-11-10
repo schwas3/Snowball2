@@ -331,6 +331,11 @@ for runName in runNames:
         theseImages1 = extractForegroundMask(False,backCheck,staticBoy,thisEventImages,50,thresh,blur,0)
         theseImages2 = extractForegroundMask(False,False,staticBoy,thisEventImages,50,thresh,blur,0)
         theseImages3 = extractForegroundMask(False,True,True,thisEventImages,ballParkFrame - 10,9,0,ballParkFrame+2) # changed hist from - 10 to - 5 and ballparkframe + 2 from + 5
+        theseImages1 = overlayFrames(theseImages1,frames)
+        theseImages2 = overlayFrames(theseImages2,frames)
+        theseImages3 = overlayFrames(theseImages3,frames)
+        # thisEvent1 = overlayFrames(thisEvent1,frames)
+        # thisEvent2 = overlayFrames(thisEvent2,frames)
         # theseImages3 = extractForegroundMask(False,backCheck,staticBoy,thisEventImages,histLeng,9,0,startingAt)
         # modifyingTitle = 'X(false,'+','.join([str(holding).lower() for holding in [backCheck,staticBoy,histLeng,thresh,blur,startingAt]])+')'
         # modifyingTitle = 'X(false,false,true,50,100,15,0)'
@@ -351,8 +356,8 @@ for runName in runNames:
         # low = int(np.max([0,low-np.max([(high-low)/2,5])]))
         # high = int(np.min([eventLength,high+np.max([(high-low)/2,5])]))
         # thisImages = concatFrames(theseImages,concatFrames(theseImages1,theseImages2,2),2)[:detectedFrame+10]
-        # thisImages = concatFrames(concatFrames(concatFrames(concatFrames(theseImages,theseImages2,2),thisEvent2,2),theseImages3,2),thisEvent1,2)[detectedFrame-10:detectedFrame+25]
-        thisImages = concatFrames(concatFrames(concatFrames(concatFrames(theseImages,theseImages2,1),thisEvent2,1),theseImages3,1),thisEvent1,1)[detectedFrame-10:detectedFrame+25]
+        thisImages = concatFrames(concatFrames(concatFrames(concatFrames(theseImages,theseImages2,2),thisEvent2,2),theseImages3,2),thisEvent1,2)
+        # thisImages = concatFrames(concatFrames(concatFrames(concatFrames(theseImages,theseImages2,1),thisEvent2,1),theseImages3,1),thisEvent1,1)[detectedFrame-10:detectedFrame+25]
         try:Images = concatFrames(Images,thisImages,0)
         except:Images=thisImages
         # thisImages = concatFrames(theseImages,theseImages1,2)
