@@ -77,7 +77,8 @@ def makeBarGraph(labels,width,barLabels,barData,title,yLabel,xLabel, makeBar: bo
         #     suffix += 1
         plt.savefig(str(title)+' hist '+str(suffix)+'.png')
 def padEvent(eventImages):
-    return np.pad(eventImages,[(0,0),(1,1),(1,1)],'constant',constant_values = 255)
+    try:return np.pad(eventImages,[(0,0),(1,1),(1,1)],'constant',constant_values = 255)
+    except:return np.pad(eventImages,[(0,0),(1,1),(1,1),(0,0)],'constant',constant_values = 255)
 def initializeImages(eventImages):
     newImages = []
     for eventImage in eventImages:
@@ -135,7 +136,8 @@ def extractForegroundMask(reverse: bool, mustExistInPreviousFrames: bool,static:
 def overlayFrames(frame1,frame2): # returns the composite frame of two frames
     return np.multiply(frame1,np.divide(frame2,255))
 def getEventsFromRun(runFolder): # str - name of grou p, str array - names of runs, str 2d array - timestamps in runs, str 2d array - filenames in runs
-    filename_RFG = [os.path.join(runFolder,i) for i in os.listdir(runFolder)] # make sure is tiff and not .tif possible source of error
+    filename_RFG = [os.path.join(runFolder,i) for i in os.listdir(runFolder)if i[-4:]=='.bmp' or i[-5:]=='.tiff'] # make sure is tiff and not .tif possible source of error
+    # filename_RFG = [os.path.join(runFolder,i) for i in os.listdir(runFolder)] # make sure is tiff and not .tif possible source of error
     groupName_RFG = os.path.basename(runFolder)
     runNames_RFG = []
     runImages_RFG = []
@@ -153,6 +155,8 @@ def getEventsFromRun(runFolder): # str - name of grou p, str array - names of ru
                 valid_RFG.append(True)
                 runImages_RFG.append([])
             runImages_RFG[-1].append(cv2.imread(i))
+            # if len(runImages_RFG)==35:
+            #     runImages_RFG[-1].append(cv2.imread(i))
             if timestamp_RFG[-1] == 'X':
                 valid_RFG[-1] = False
             runTimestamps_RFG[-1].append(timestamp_RFG.replace('X',''))
@@ -214,7 +218,7 @@ folder = 'Run05'
 # for i in range(len(runNames)):
 #     runNames[i] = os.path.basename(runNames[i])
 # print(runNames)
-runNames = ['Cs-137 Event'] # the short name of the folder containing images (tif files)
+runNames = ['Cs-137 Tiff'] # the short name of the folder containing images (tif files)
 notesContent = []
 for runName in runNames:
     Images3 = []
@@ -232,7 +236,7 @@ for runName in runNames:
     if allEventsInFolder:
         eventsOfInterest = np.arange(len(eventPrefixes))
     else:
-        eventsOfInterest = np.array([28]) # 1-indexing
+        eventsOfInterest = np.array([35]) # 1-indexing
         eventsOfInterest = eventsOfInterest[eventsOfInterest <= len(eventPrefixes)]
         for i in range(len(eventsOfInterest)):
             eventsOfInterest[i] -= 1
@@ -298,7 +302,7 @@ for runName in runNames:
         thresh = 150
         blur = 1
         startingAt = 200
-        openYorN = False
+        openYorN = True
         theseImages = extractForegroundMask(False,backCheck,staticBoy,thisEventImages,histLeng,thresh,blur,startingAt)
         # theseImages2 = extractForegroundMask(False,backCheck,True,thisEventImages,detectedFrame-5,150,1,startingAt)
         # for frameNumber in range(eventLength):
@@ -309,7 +313,7 @@ for runName in runNames:
         tStamp = []
         for timestamp in thisEventFrameTimestamps:
             tStamp.append(timestamp.replace('.',''))
-        # # below is purely comparison basedyy
+        # below is purely comparison basedyy
         low = np.max([0,detectedFrame - 5])
         high = np.min([eventLength,detectedFrame + 5])
         # low = 0
@@ -321,22 +325,29 @@ for runName in runNames:
         #     high = detectedFrame
         # low = int(np.max([0,low-np.max([(high-low)/2,5])]))
         # high = int(np.min([eventLength,high+np.max([(high-low)/2,5])]))
-        # thisImages = concatFrames(frames,theseImages,2)
+        nowImages = []
+        for i in range(len(theseImages)):
+            nowImages.append(cv2.merge([theseImages[i],theseImages[i],theseImages[i]]))
+        thisImages = concatFrames(frames,nowImages,2)
         # for frameNumber in range(eventLength):
         #     # thisImages.append(cv2.resize(theseImages[frameNumber],(256,96)))
         #     thisImages[frameNumber] = imgNumStamps(int(detectedFrame),7,0,thisImages[frameNumber])
-        # thisImages = eventFrameStamp(eventNumber,thisImages,eventPrefixes[eventNumber].replace('.',''),tStamp,True)
+        thisImages = eventFrameStamp(eventNumber,thisImages,eventPrefixes[eventNumber].replace('.',''),tStamp,True)
         for frameNumber in range(eventLength):
             # thisImages[frameNumber] = imgNumStamps(int(answerKeyLines[eventNumber].split(' ')[0]),20,0,thisImages[frameNumber])
         # leave stamp code output? (seems very useful)
             # if runName == 'control2' or runName == 'control3' or runName == 'old':
             #     Images1.append(cv2.resize(thisImages[frameNumber],(256,96)))
             # else:
-            # Images.append(thisImages[frameNumber])
-            if frameNumber <= detectedFrame + 200 and frameNumber >= detectedFrame-5:
+            Images.append(thisImages[frameNumber])
+            if frameNumber >= detectedFrame-5:
+            # if frameNumber <= detectedFrame + 200 and frameNumber >= detectedFrame-5:
                 Images3[-1]= np.add(Images3[-1],np.divide(theseImages[frameNumber],255))
                 # Images3[eventNumber]= np.add(Images3[eventNumber],np.divide(thisImages[frameNumber],255))
-            if frameNumber <= detectedFrame + 0 and frameNumber >= detectedFrame:
+            else:
+                continue
+            if frameNumber == detectedFrame:
+                #  frameNumber <= detectedFrame + 0 and frameNumber >= detectedFrame:
                 Images4[-1]= np.add(Images4[-1],np.divide(thisEvent1[frameNumber],255))
                 # Images4[eventNumber]= np.add(Images4[eventNumber],np.divide(thisEvent1[frameNumber],255))
                 # pass
@@ -346,14 +357,14 @@ for runName in runNames:
             # Images3[eventNumber]= thisImages[frameNumber]
             # if frameNumber < 25:
             #     Images4.append(frames[frameNumber])
-            if frameNumber == eventLength - 1:
-                # Images4.append(thisImages[frameNumber])
-                pass
+            # if frameNumber == eventLength - 1:
+            #     # Images4.append(thisImages[frameNumber])
+            #     pass
         Images3[-1] = np.divide(Images3[-1],np.max([1,np.max(Images3[-1])]))
         # Images3[eventNumber] = np.divide(Images3[eventNumber],np.max([1,np.max(Images3[eventNumber])]))
         Images4[-1] = np.divide(Images4[-1],np.max([1,np.max(Images4[-1])]))
         # Images4[eventNumber] = np.divide(Images4[eventNumber],np.max([1,np.max(Images4[eventNumber])]))
-    makeBarHistGraphsSolo(labels,0.35,codeFrame,runName,False,False,folder+os.path.sep)
+    # makeBarHistGraphsSolo(labels,0.35,codeFrame,runName,False,False,folder+os.path.sep)
     newImage = np.zeros_like(Images3[0])
     newImage1 = np.zeros_like(Images4[0])
     # for i in range(1):
@@ -380,6 +391,7 @@ for runName in runNames:
         newImage1 = np.add(newImage1,np.divide(Images4[i],1))
     # print(newImage)
     fig = plt.figure(figsize=(len(Images3[0][0])/8,len(Images3[0])/10))
+    # fig = plt.figure(figsize=(100,100))
     plt.clf()
     plt.axis('scaled')
     newImage=concatFrames(newImage,len(Images3)+np.zeros((1,len(newImage[0]))),0)
@@ -409,6 +421,7 @@ for runName in runNames:
     plt.title(folder+' - '+runName+' - Snowball Nucleation Net Heat Map (N='+str(len(eventPrefixes))+')',fontsize=16)
     fig.tight_layout()
     plt.savefig(this_repo_path+os.path.sep+folder+' - '+runName+' - heat map ALL - '+modifyingTitle+'.jpg')
+    # fig = plt.figure(figsize=(100,100))
     fig = plt.figure(figsize=(len(Images3[0][0])/10*np.ceil(np.sqrt(len(eventPrefixes))),len(Images3[0])/10*np.ceil(np.sqrt(len(eventPrefixes)))))
     plt.clf()
     xPos,yPos,posName=[],[],[]
@@ -453,6 +466,8 @@ for runName in runNames:
     fig.tight_layout()
     plt.savefig(this_repo_path+os.path.sep+folder+' - '+runName+' - event heat maps - '+modifyingTitle+'.jpg')
     # plt.show()
+    # fig = plt.figure(figsize=(100,100))
+    # fig = plt.figure(figsize=(10,8))
     fig = plt.figure(figsize=(len(Images3[0][0])/8,len(Images3[0])/10))
     plt.clf()
     plt.axis('scaled')

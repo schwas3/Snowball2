@@ -136,7 +136,8 @@ def extractForegroundMask(reverse: bool, mustExistInPreviousFrames: bool,static:
 def overlayFrames(frame1,frame2): # returns the composite frame of two frames
     return np.multiply(frame1,np.divide(frame2,255))
 def getEventsFromRun(runFolder): # str - name of grou p, str array - names of runs, str 2d array - timestamps in runs, str 2d array - filenames in runs
-    filename_RFG = glob.glob(runFolder + os.path.sep + '*.bmp') # make sure is tiff and not .tif possible source of error
+    filename_RFG = [os.path.join(runFolder,i) for i in os.listdir(runFolder)if i[-4:]=='.bmp' or i[-5:]=='.tiff'] # make sure is tiff and not .tif possible source of error
+    # filename_RFG = glob.glob(runFolder + os.path.sep + '*.bmp') # make sure is tiff and not .tif possible source of error
     groupName_RFG = os.path.basename(runFolder)
     runNames_RFG = []
     runImages_RFG = []
@@ -216,7 +217,7 @@ runNames = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.se
 for i in range(len(runNames)):
     runNames[i] = os.path.basename(runNames[i])
 # print(runNames)
-runNames = ['Cs-137 Event'] # the short name of the folder containing images (tif files)
+runNames = ['Cs-137 Bmp'] # the short name of the folder containing images (tif files)
 notesContent = []
 for runName in runNames:
     runEventsNoteContent = runName+', Invalid Events: '
@@ -232,7 +233,7 @@ for runName in runNames:
     if allEventsInFolder:
         eventsOfInterest = np.arange(len(eventPrefixes))
     else:
-        eventsOfInterest = np.array([28]) # 1-indexing
+        eventsOfInterest = np.array([35]) # 1-indexing
         eventsOfInterest = eventsOfInterest[eventsOfInterest <= len(eventPrefixes)]
         for i in range(len(eventsOfInterest)):
             eventsOfInterest[i] -= 1
