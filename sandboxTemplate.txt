@@ -11,7 +11,10 @@ event heat charts
 MAKE IT RUN FASTER
 "net" event heat charts need revisiting before being used - methodology with weighting values is difficult - normalization may lead to overvaluing positions from late-frame primary nucleation trials
 Replace glob with os methods (i.e. no need for '*' notation which is slower than os.listdir)
+Variable frame rate videos (maybe not necessary for all events, this could be computationally taxing)
 
+
+Know for next time: crop images without rotation and into color - preserve these as the "original versions" and then do whatever with those
 
 
 NAMING CONVENTIONS:
@@ -39,7 +42,12 @@ Compare heat maps?
 Multiple Scatter Results? - 
 
 
+dict[run][source][prefix][suffix]
+
+*** Make txt files with the names of all prefixes and then sub txts or sublists of suffixes (avoid glob.glob etc.)
+
 
 cuts
 
 run02 ambe 19
+

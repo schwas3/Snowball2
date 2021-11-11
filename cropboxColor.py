@@ -10,8 +10,8 @@ this_repo_path, this_file_name = os.path.split(this_file_path) # gets the path t
 github_path, this_repo_name = os.path.split(this_repo_path) # gets the users github folder location and the repo name
 data_repo_name = "Snowball7"
 data_repo_path = github_path + os.path.sep + data_repo_name
-folder = 'Run05'
-subfolder = 'Cs-137 Orig'
+folder = 'E'
+subfolder = 'control 2'
 data_folder_path = data_repo_path+os.path.sep+'SNOWBALL CROPPED IMAGES'
 data_folder_path += os.path.sep + folder
 
@@ -117,8 +117,8 @@ def useInput(event,x,y,flags,param):
         cv2.imshow('original',cv2.resize(img,(int(scale*len(img[0])),int(scale*len(img)))))
         # return np.array([[0,0],[]])
     # return 
-a = 2
-aa = '381 523 361 477 0'
+a = 1
+aa = '329 447 416 506 0'
 x1,x2,y1,y2,rot = [int(i) for i in aa.split()]
 rot /= 10
 if a == 1: # image analysis code
@@ -145,19 +145,19 @@ if a == 2: # make tiffs code
             print(str(ii) + ' '+filename)
             ii += 1
         img = image
-        try:
-            img = cv2.imread(filename)
-            # img = rotate_image(img,rot)
-            # img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-            img = img[y1:y2,x1:x2,:]
-            # print('pepsi')
-            # cv2.imshow('test',img)
-            # cv2.waitKey(0)
-            # cv2.destroyAllWindows()
-            # print(filename.replace(' Orig',''))
-            cv2.imwrite(filename.replace(' Orig',' Tiff').replace('.bmp','.tiff'),img)
-        except:
-            print('cola',filename)
+        # try:
+        img = cv2.imread(filename)
+        # img = rotate_image(img,rot)
+        # img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+        img = img[y1:y2,x1:x2,:]
+        # print('pepsi')
+        # cv2.imshow('test',img)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+        # print(filename.replace(' Orig',''))
+        cv2.imwrite(filename.replace('Snowball7','Snowball8').replace(' Orig',' Tiff').replace('.bmp','.tiff'),img)
+        # except:
+        #     print('cola',filename)
             # # img = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
             # img = img[y1:y2,x1:x2]
             # cv2.imwrite(filename.split('.bmp')[0]+'X.tiff',img)
