@@ -19,9 +19,16 @@ pip install numpy
 pip install matplotlib
 pip install opencv-python
 
-
+Extensions:
+image resizer (bmp viewing)
+python (has multiple extensions)
+opencv snippets
+simply_view_image_for_python_opecv_debugging
+vscode-pdf
+vscode-tiff
 
 File size management: in order to make the repository not excessively large a solution for keeping the cropped images is currently being developed using a second repo
 
 BE SURE TO VIEW whichRuns.txt
 https://github.com/schwas3/Snowball2/blob/main/Bar%20and%20Hist%20Figs/whichRuns.txt
+
