@@ -9,6 +9,8 @@ import glob
 from os import read, startfile, write
 from os.path import exists
 
+from numpy.lib.function_base import interp
+
 def makeBarHistGraphsSolo(labels,width,barData,title,makeBar: bool,makeHist:bool,folderH):
     if makeBar:
         x = np.arange(len(labels))
@@ -205,19 +207,19 @@ Images2 = [] # initializes the array used to store images to make a movie
 this_file_path = os.path.realpath(__file__) # gets the path to this file including the file
 this_repo_path, this_file_name = os.path.split(this_file_path) # gets the path to the repository containing this file and the file name
 github_path, this_repo_name = os.path.split(this_repo_path) # gets the users github folder location and the repo name
-data_repo_name = "Snowball8"
+data_repo_name = "Snowball7"
 data_repo_path = github_path + os.path.sep + data_repo_name
 data_folder_name = 'SNOWBALL CROPPED IMAGES'
-folder = 'E'
+folder = 'Run05'
 try: 
     os.mkdir(this_repo_path+os.path.sep+folder) 
 except:
     pass
-runNames = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.sep + folder + os.path.sep + '*')
-for i in range(len(runNames)):
-    runNames[i] = os.path.basename(runNames[i])
+# runNames = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.sep + folder + os.path.sep + '*')
+# for i in range(len(runNames)):
+#     runNames[i] = os.path.basename(runNames[i])
 # print(runNames)
-# runNames = ['ambe pb 1'] # the short name of the folder containing images (tif files)
+runNames = ['Cs-137 Tiff'] # the short name of the folder containing images (tif files)
 notesContent = []
 for runName in runNames:
     runEventsNoteContent = runName+', Invalid Events: '
@@ -258,7 +260,8 @@ for runName in runNames:
         frames = []
         for frameNumber in range(eventLength):
             frames.append(thisEventImages[frameNumber])
-        thisEventImages = cv2.normalize(np.array(thisEventImages),np.zeros_like(thisEventImages),0,255,cv2.NORM_MINMAX) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
+        thisEventImages = np.array(thisEventImages)
+        # thisEventImages = cv2.normalize(np.array(thisEventImages),np.zeros_like(thisEventImages),0,255,cv2.NORM_MINMAX) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
         # thisEventImages = cv2.normalize(thisEventImages,)
         # thisEventImages = normalizePixelValues(thisEventImages,30,225) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
         print(eventLabel)
@@ -296,10 +299,9 @@ for runName in runNames:
         # cv2.destroyAllWindows()
         theseImages = extractForegroundMask(False,True,True,thisEventImages,detectedFrame - 5,150,1,200)
         thisImages = []
-        nowImages = []
         for i in range(len(theseImages)):
-            nowImages.append(cv2.merge([theseImages[i],theseImages[i],theseImages[i]]))
-        thisImages = concatFrames(frames,nowImages,2)
+            thisImages.append(concatFrames(thisEventImages[i],cv2.merge([theseImages[i],theseImages[i],theseImages[i]]),1))
+            thisImages[-1] = cv2.resize(thisImages[-1],(256,96))
 # theseImages = concatFrames(frames,thisEvent1,2)
         # theseImages = frames
         tStamp = []
@@ -318,7 +320,7 @@ for runName in runNames:
         # low = int(np.max([0,low-np.max([(high-low)/2,5])]))
         # high = int(np.min([eventLength,high+np.max([(high-low)/2,5])]))
         for frameNumber in range(eventLength):
-            # thisImages.append(cv2.resize(theseImages[frameNumber],(256,96)))
+            # thisImages[frameNumber] = cv2.resize(thisImages[frameNumber],(256,96),interpolation=cv2.INTER_AREA)
             thisImages[frameNumber] = imgNumStamps(int(detectedFrame),7,0,thisImages[frameNumber])
         thisImages = eventFrameStamp(eventNumber,thisImages,eventPrefixes[eventNumber].replace('.',''),tStamp,True)
         for frameNumber in range(eventLength):

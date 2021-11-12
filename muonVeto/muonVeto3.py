@@ -17,10 +17,12 @@ import glob
 muonVetoPath = 'C:\\Users\\Scott\\Downloads\\ForScott'
 muonVetoIndicesPath = 'C:\\Users\\Scott\\Downloads\\ForScott2'
 resultsPaths = 'C:\\Users\\Scott\\Documents\\GitHub\\Snowball6\\Bar and Hist Figs'
-thisPaths = 'C:\\Users\\Scott\\Documents\\GitHub\\Snowball2\\muonVeto'
+thisPaths = 'C:\\Users\\Scott\\Documents\\GitHub\\Snowball2'
 imagesPaths = 'C:\\Users\\Scott\\Documents\\GitHub\\Snowball9\\SNOWBALL CROPPED IMAGES'
 name = ['control', 'AmBe','AmBe Pb', 'Cs137', 'U','UBe','CfPb']
 Colors = ['b-','r--','r-','g-','c-','y-','m-','y-']
+name = ['control','AmBe Pb', 'CfPb','Cs137']
+Colors = ['b-','r-','y-','g-']
 # name.pop(2)
 # Colors.pop(2)
 # runNamePaths = glob.glob(thisPaths+os.path.sep+ '* - '+name+'* - Muon Delta T (best).txt')
@@ -61,7 +63,7 @@ plt.ylabel('Probability/bin')
 # plt.plot(bins[:-1]/2+bins[1:]/2,counts/np.sum(counts)/int(2*bounds*binsPerSecond),Colors.pop(0),label=fileName+' (N='+str(len(data))+')')
     # plt.hist(bins[:-1],bins,weights=counts/np.sum(counts),label=fileName+' (N='+str(len(data))+')')
 plt.legend()
-plt.ylim(-.3,.3)
+plt.ylim(-.2,.6)
 plt.suptitle('ALL Ag - MuonVeto Delta t\'s')
 fig.tight_layout()
 plt.savefig('ALL Ag - Muon Hist.jpg')
@@ -73,7 +75,7 @@ for i in range(len(bigData)):
     plt.plot(bins[:-1]/2+bins[1:]/2,counts/len(bigData[i])-Counts/len(bigData[0]),Colors[i],linewidth=0.25)
     plt.errorbar(bins[:-1]/2+bins[1:]/2,counts/len(bigData[i])-Counts/len(bigData[0]),np.sqrt(counts)/len(bigData[i])+np.sqrt(Counts)/len(bigData[0]),binWidth/2,Colors[i],linewidth=0.25,elinewidth=0.5)
     plt.hlines([0,0],-bounds,bounds,colors=['black','black'],linestyles=['dashed','dashed'],zorder=0)
-    plt.ylim(-.3,.3)
+    plt.ylim(-.2,.6)
     plt.xlabel('Delta Time (s)')
     plt.ylabel('Probability/bin')
 plt.suptitle('ALL separate - MuonVeto Delta t\'s')

@@ -18,13 +18,14 @@ from numpy.core.shape_base import block
 muonVetoPath = 'C:\\Users\\Scott\\Downloads\\ForScott'
 muonVetoIndicesPath = 'C:\\Users\\Scott\\Downloads\\ForScott2'
 # resultsPaths = 'C:\\Users\\Scott\\Documents\\GitHub\\Snowball2\\Bar and Hist Figs'
-imagesPaths = 'C:\\Users\\Scott\\Documents\\GitHub\\Snowball8\\SNOWBALL CROPPED IMAGES'
+imagesPaths = 'C:\\Users\\Scott\\Documents\\GitHub\\Snowball7\\SNOWBALL CROPPED IMAGES'
 folder2 = 'E'
-# folder2 = 'Run06'
+folder2 = 'Run05'
 folder = 'Run'+folder2
-# folder = folder2[:3]+folder2[3].replace('0','')+folder2[4:]
-runName2 = 'Cf Pb 2'
+folder = folder2[:3]+folder2[3].replace('0','')+folder2[4:]
+runName2 = 'Cs-137 Tiff'
 runName = runName2.replace(' ','').replace('-','').replace('sss','').replace('pffb','').replace('_','')
+runName = 'Cs137'
 # runName = 'ambe'
 
 # NM = number mismatch
@@ -72,7 +73,7 @@ filePath = muonVetoPath + os.path.sep + folder +'_'+runName+'_muon.txt'
 indexPath = muonVetoIndicesPath + os.path.sep + folder + '_'+runName+'.txt'
 if (folder2 == 'Run01' and runName2 == 'ambe_pb') or (folder2 == 'Run02' and runName2 == 'ambe'):
     indexPath = muonVetoIndicesPath + os.path.sep + folder + '_'+runName+'1.txt'
-resultsPath = 'C:\\Users\\Scott\\Documents\\GitHub\\Snowball2\\E\\'+runName2+' - Results.txt'
+resultsPath = 'C:\\Users\\Scott\\Documents\\GitHub\\Snowball2\\run05\\'+runName2+' - Results.txt'
 imagesPath = imagesPaths + os.path.sep + folder2 + os.path.sep + runName2 + os.path.sep
 imagesFiles = glob.glob(imagesPath+'*.tiff')
 imagesFiles = [os.path.basename(i).replace('.tiff','').split('_') for i in imagesFiles]
