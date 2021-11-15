@@ -1,52 +1,32 @@
-import cv2
-from matplotlib.pyplot import sca, subplots
-import numpy as np
-import os
-import keyboard
 import glob
+import os
+from typing import Container
+
+import cv2
+import keyboard
+import numpy as np
+from matplotlib.pyplot import figimage, sca, subplots, subplots_adjust
 
 data_folder = 'E:\\Snowball_Data'
 orig_folder = data_folder + os.path.sep + 'OriginalsOneForOne'
 recep_folder = data_folder + os.path.sep + 'ColorCroppedTiffs'
 extraction_folders = os.listdir(orig_folder)
-for run in extraction_folders:
-    run_path = os.path.join(orig_folder,run)
-    try:os.mkdir(run_path)
-    except:pass
-    sub_folders = os.listdir(run_path)
-    for sub_folder in sub_folders:
-        if sub_folder == '.DS_Store':
-            continue
-        sub_path = os.path.join(run_path,sub_folder)
-        filenames = [filename for filename in os.listdir(sub_path) if filename[0] != 'z']
-        print(sub_path,len(filenames))
-        try:os.mkdir(sub_path)
-        except:continue
-exit()
-# for run in extraction_folders:
+global img,image,x1,x2,y1,y2,scale,index
 
-
-
-filenames = glob.glob(data_folder_path+os.path.sep + subfolder+os.path.sep+'*.bmp')
-# filenames = glob.glob(data_folder_path+os.path.sep + '*'+os.path.sep+'\u2705.bmp')
-
-# filenames = glob.glob(data_folder_path+os.path.sep+'*'+os.path.sep+'*.bmp')
-
-global img,image,x1,x2,y1,y2,rot,scale,modifier,index
-scale,modifier,index = 1,1,0
-image = np.zeros_like(cv2.imread(filenames[index]))
-# modifier = 1
-# index = 0
-# image = cv2.imread(filenames[index])
-
-def rotate_image(image, angle):
-  image_center = tuple(np.array(image.shape[1::-1]) / 2)
-  rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
-  result = cv2.warpAffine(image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR)
-  return result
 def useInput(event,x,y,flags,param):
     global x1,x2,y1,y2,rot,img,modifier,scale,index,image
     if event != 0:
+        modifier = 0
+        if event == cv2.EVENT_LBUTTONDBLCLK:
+            event -= cv2.EVENT_LBUTTONDBLCLK
+            event += cv2.EVENT_LBUTTONDOWN
+            flags -= cv2.EVENT_LBUTTONDBLCLK
+            flags += cv2.EVENT_LBUTTONDOWN
+        elif event == cv2.EVENT_RBUTTONDBLCLK:
+            event -= cv2.EVENT_RBUTTONDBLCLK
+            event += cv2.EVENT_RBUTTONDOWN
+            flags -= cv2.EVENT_RBUTTONDBLCLK
+            flags += cv2.EVENT_RBUTTONDOWN
         if event == cv2.EVENT_LBUTTONDOWN:
             if flags == cv2.EVENT_LBUTTONDOWN + cv2.EVENT_FLAG_SHIFTKEY + cv2.EVENT_FLAG_ALTKEY:
                 x2 += 1
@@ -120,15 +100,98 @@ def useInput(event,x,y,flags,param):
                 index += 1
             index = np.max([index,0])
             index = np.min([index,len(filenames)-1])
-            image = cv2.imread(filenames[index])
+            while True:
+                try:image = cv2.imread(filenames[index]);break
+                except:index -= 1
         img = np.array(image)
         img = cv2.rectangle(img,(x1-1,y1-1),(x2+1,y2+1),(255,0,0),1)
         img = img[max([0,y1-20]):min([601,y2+20]),max([0,x1-20]):min([801,x2+20]),:]
         # img = rotate_image(image,rot)
         # cv2.imshow('original',cv2.resize(img,(int(scale*(x2-x1+40)),int(scale*(y2-y1+40)))))
-        cv2.imshow('original',cv2.resize(img,(int(scale*len(img[0])),int(scale*len(img)))))
+        # cv2.imshow('original',img)
+        cv2.imshow(sub_path,cv2.resize(img,(int(scale*len(img[0])),int(scale*len(img)))))
         # return np.array([[0,0],[]])
     # return 
+theTree = {}
+x1,x2,y1,y2 = 300,500,350,550
+for run in extraction_folders:
+    theTree[run] = {}
+    run_path = os.path.join(orig_folder,run)
+    recep_run_path = os.path.join(recep_folder,run)
+    try:os.mkdir(recep_run_path)
+    except:pass
+    sub_folders = os.listdir(run_path)
+    for sub_folder in sub_folders:
+        if sub_folder == '.DS_Store':
+            continue
+        sub_path = os.path.join(run_path,sub_folder)
+        recep_path = os.path.join(recep_folder,run,sub_folder)
+        filenames = [sub_path+os.path.sep+filename for filename in os.listdir(sub_path) if filename[0] != 'z']
+        # if len(os.listdir(recep_path)) + 2 >= len(filenames):print(sub_folder);continue
+        # newFilenames = [os.path.join(recep_path,filename.replace('.bmp','.tiff')) for filename in os.listdir(sub_path) if filename[0] != 'z']
+        print(sub_path,len(filenames))
+        try:os.mkdir(recep_path)
+        except:pass
+        # continue
+        index = 0
+        scale,index,modifier = 4,0,0
+        cv2.namedWindow(sub_path)
+        cv2.setMouseCallback(sub_path,useInput)
+        while modifier < 25:
+            try:
+                image = cv2.imread(filenames[index])
+                img = np.array(image)
+                img = cv2.rectangle(img,(x1-1,y1-1),(x2+1,y2+1),(255,0,0),1)
+                img = img[max([0,y1-20]):min([601,y2+20]),max([0,x1-20]):min([801,x2+20]),:]
+                # cv2.imshow('original',img)
+                cv2.imshow(sub_path,cv2.resize(img,(int(scale*len(img[0])),int(scale*len(img)))))
+                if cv2.waitKey(0):
+                    modifier += 1
+            except Exception as excep:
+                if excep == KeyboardInterrupt:
+                    exit()
+                index -= 1
+        cv2.destroyAllWindows()
+        theTree[run][sub_folder] = [x1*1,x2*1,y1*1,y2*1]
+        # print(x1,x2,y1,y2)
+        # print(len(filenames),len(filenames)//201)
+for run in extraction_folders:
+    run_path = os.path.join(orig_folder,run)
+    recep_run_path = os.path.join(recep_folder,run)
+    sub_folders = os.listdir(run_path)
+    for sub_folder in sub_folders:
+        if sub_folder == '.DS_Store':continue
+        sub_path = os.path.join(run_path,sub_folder)
+        recep_path = os.path.join(recep_folder,run,sub_folder)
+        filenames = [sub_path+os.path.sep+filename for filename in os.listdir(sub_path) if filename[0] != 'z']
+        # if len(os.listdir(recep_path)) + 2 >= len(filenames):print(sub_folder);continue
+        print(sub_path,len(filenames))
+        newFilenames = [os.path.join(recep_path,filename.replace('.bmp','.tiff')) for filename in os.listdir(sub_path) if filename[0] != 'z']
+        x1,x2,y1,y2 = theTree[run][sub_folder]
+        print(run,sub_folder,x1,x2,y1,y2)
+        for filename,newFilename in zip(filenames,newFilenames):
+            # if i % 201 == 0:print(filename,newFilename,i,i//201)
+            try:
+                # cv2.imread(filename)
+                # continue
+                cv2.imwrite(newFilename,cv2.imread(filename)[y1:y2,x1:x2,:])
+                continue
+            except Exception as excep:
+                if excep == KeyboardInterrupt:
+                    exit()
+                cv2.imwrite(newFilename,np.zeros_like(cv2.imread(filenames[index])[y1:y2,x1:x2,:]))
+                # continue
+                # print(newFilename)
+                # cv2.imshow('test',np.zeros((y2-y1,x2-x1)))
+                # cv2.waitKey(0)
+                # cv2.destroyAllWindows()
+exit()
+# global img,image,x1,x2,y1,y2,rot,scale,modifier,index
+scale,modifier,index = 1,1,0
+image = np.zeros_like(cv2.imread(filenames[index]))
+# modifier = 1
+# index = 0
+# image = cv2.imread(filenames[index])
 a = 1
 aa = '329 447 416 506 0'
 x1,x2,y1,y2,rot = [int(i) for i in aa.split()]
@@ -173,17 +236,3 @@ if a == 2: # make tiffs code
             # # img = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
             # img = img[y1:y2,x1:x2]
             # cv2.imwrite(filename.split('.bmp')[0]+'X.tiff',img)
-if a == 3: #replace code
-    for filename in filenames:
-        if filename != filename.split(folder)[0]+folder+filename.split(folder)[1].replace(' ',''):
-            print(filename)
-            print(filename.split(folder)[0]+folder+filename.split(folder)[1].replace(' ',''))
-        os.rename(filename,filename.split(folder)[0]+folder+filename.split(folder)[1].replace(' ',''))
-if a == 4: # destroy bmp code
-    II = 0
-    for filename in filenames:
-        if filename.find('_0') > -1:
-            print(str(II)+ ' '+filename)
-            II += 1
-        # print(filename)
-        os.remove(filename)
