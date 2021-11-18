@@ -210,15 +210,17 @@ Images2 = [] # initializes the array used to store images to make a movie
 this_file_path = os.path.realpath(__file__) # gets the path to this file including the file
 this_repo_path, this_file_name = os.path.split(this_file_path) # gets the path to the repository containing this file and the file name
 github_path, this_repo_name = os.path.split(this_repo_path) # gets the users github folder location and the repo name
+data_repo_name = "Snowball7"
 data_repo_name = "Snowball8"
 data_repo_path = github_path + os.path.sep + data_repo_name
 data_folder_name = 'SNOWBALL CROPPED IMAGES'
-folder = 'E'
+data_folder_name = 'ColorCroppedTiffs'
+folder = 'run04'
 runNames = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.sep + folder + os.path.sep + '*')
 for i in range(len(runNames)):
     runNames[i] = os.path.basename(runNames[i])
 # print(runNames)
-# runNames = ['Cs-137 Tiff'] # the short name of the folder containing images (tif files)
+runNames = ['Cs-137'] # the short name of the folder containing images (tif files)
 notesContent = []
 for runName in runNames:
     Images3 = []
@@ -227,6 +229,7 @@ for runName in runNames:
     invalidEventsInRun = ''
     detectedFrames = []
     data_folder_name = 'SNOWBALL CROPPED IMAGES'
+    data_folder_name = 'ColorCroppedTiffs'
     data_folder_name += os.path.sep + folder
     data_folder_name += os.path.sep + runName
     data_folder_path = data_repo_path + os.path.sep + data_folder_name # THIS LINE MUST BE CORRECT EVERYTHING ELSE IS NOT ESSENTIAL
@@ -271,6 +274,7 @@ for runName in runNames:
         print(eventLabel)
         # do stuff here
         # thisEvent1 = extractForegroundMask(False,True,True,thisEventImages, 50,9,0,0)
+        frames = []
         thisEvent3 = extractForegroundMask(False,True,True,thisEventImages,50,100,35,0)
         ballParkFrame = 0
         detectedFrame = 0
@@ -302,8 +306,9 @@ for runName in runNames:
         thresh = 150
         blur = 1
         startingAt = 200
-        openYorN = True
-        theseImages = extractForegroundMask(False,backCheck,staticBoy,thisEventImages,histLeng,thresh,blur,startingAt)
+        openYorN = False
+        theseImages = thisEvent3
+        # theseImages = extractForegroundMask(False,backCheck,staticBoy,thisEventImages,histLeng,thresh,blur,startingAt)
         # theseImages2 = extractForegroundMask(False,backCheck,True,thisEventImages,detectedFrame-5,150,1,startingAt)
         # for frameNumber in range(eventLength):
         #     theseImages[frameNumber] = overlayFrames(theseImages[frameNumber],theseImages2[frameNumber])
@@ -328,18 +333,18 @@ for runName in runNames:
         nowImages = []
         for i in range(len(theseImages)):
             nowImages.append(cv2.merge([theseImages[i],theseImages[i],theseImages[i]]))
-        thisImages = concatFrames(frames,nowImages,2)
+        # thisImages = concatFrames(frames,nowImages,2)
         # for frameNumber in range(eventLength):
         #     # thisImages.append(cv2.resize(theseImages[frameNumber],(256,96)))
         #     thisImages[frameNumber] = imgNumStamps(int(detectedFrame),7,0,thisImages[frameNumber])
-        thisImages = eventFrameStamp(eventNumber,thisImages,eventPrefixes[eventNumber].replace('.',''),tStamp,True)
+        # thisImages = eventFrameStamp(eventNumber,thisImages,eventPrefixes[eventNumber].replace('.',''),tStamp,True)
         for frameNumber in range(eventLength):
             # thisImages[frameNumber] = imgNumStamps(int(answerKeyLines[eventNumber].split(' ')[0]),20,0,thisImages[frameNumber])
         # leave stamp code output? (seems very useful)
             # if runName == 'control2' or runName == 'control3' or runName == 'old':
             #     Images1.append(cv2.resize(thisImages[frameNumber],(256,96)))
             # else:
-            Images.append(thisImages[frameNumber])
+            # Images.append(thisImages[frameNumber])
             if frameNumber >= detectedFrame-5:
             # if frameNumber <= detectedFrame + 200 and frameNumber >= detectedFrame-5:
                 Images3[-1]= np.add(Images3[-1],np.divide(theseImages[frameNumber],255))
