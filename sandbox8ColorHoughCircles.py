@@ -215,7 +215,7 @@ data_repo_name = "Snowball8"
 data_repo_path = github_path + os.path.sep + data_repo_name
 data_folder_name = 'SNOWBALL CROPPED IMAGES'
 data_folder_name = 'ColorCroppedTiffs'
-folder = 'run04'
+folder = 'run05'
 runNames = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.sep + folder + os.path.sep + '*')
 for i in range(len(runNames)):
     runNames[i] = os.path.basename(runNames[i])
@@ -239,11 +239,12 @@ for runName in runNames:
     data_folder_path = data_repo_path + os.path.sep + data_folder_name # THIS LINE MUST BE CORRECT EVERYTHING ELSE IS NOT ESSENTIAL
     runName, eventPrefixes, eventFrameTimestamps, runEventImages, validRunEvents = getEventsFromRun(data_folder_path) # calls getRunsFromGroup data_folder_path MUST BE A COMPLETE PATH, ALL
     print(str(runName)+'/'+str(len(eventPrefixes)))
-    allEventsInFolder = True
+    allEventsInFolder = False
     if allEventsInFolder:
         eventsOfInterest = np.arange(len(eventPrefixes))
     else:
-        eventsOfInterest = np.array([1,2,3,4,5,6,8,15,35]) # 1-indexing
+        eventsOfInterest = np.array([8]) # 1-indexing
+        # eventsOfInterest = np.array([1,2,3,4,5,6,8,15,35]) # 1-indexing
         eventsOfInterest = eventsOfInterest[eventsOfInterest <= len(eventPrefixes)]
         for i in range(len(eventsOfInterest)):
             eventsOfInterest[i] -= 1
@@ -269,10 +270,10 @@ for runName in runNames:
             thisEventFrameTimestamps.append(thisEventFrameTimestamps.pop(0)) # the 0-th frame is removed and added to the end of the event images
         thisEventImages = cv2.normalize(np.array(thisEventImages),np.zeros_like(thisEventImages),0,255,cv2.NORM_MINMAX) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
         thisEventImagesG = extractForegroundMask(False,True,True,thisEventImages,50,100,0,200)
-        thisEventImagesG = [overlayFrames(thisEventImagesGs,thisEventImagesG[-1])for thisEventImagesGs in thisEventImagesG]
+        # thisEventImagesG = [overlayFrames(thisEventImagesGs,thisEventImagesG[-1])for thisEventImagesGs in thisEventImagesG]
         blur = 15
-        thisEventImagesG = [np.subtract(255,thisEventImagesGs) for thisEventImagesGs in thisEventImagesG]
         thisEventImagesG = [cv2.GaussianBlur(thisEventImagesGs,(blur,blur),cv2.BORDER_DEFAULT)for thisEventImagesGs in thisEventImagesG]
+        thisEventImagesG = [np.subtract(255,thisEventImagesGs) for thisEventImagesGs in thisEventImagesG]
         thisEventImagesG = np.array(thisEventImagesG).astype(np.uint8)
         # thisEventImagesG = [np.subtract(255,cv2.cvtColor(thisEventImage,cv2.COLOR_RGB2GRAY))for thisEventImage in thisEventImages]
         # thisEventImages = np.array(thisEventImages)
@@ -306,6 +307,8 @@ for runName in runNames:
             thisEventImages[frameNumber] = cv2.drawKeypoints(thisEventImages[frameNumber],keypoints,np.array([]),(0,0,255),cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
             thisEventImagesGg.append(cv2.merge([thisEventImagesG[frameNumber],thisEventImagesG[frameNumber],thisEventImagesG[frameNumber]]))
             thisEventImagesGg[frameNumber] = cv2.drawKeypoints(thisEventImagesGg[frameNumber],keypoints,np.array([]),(0,0,255),cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+            print(eventNumber,frameNumber)
+            [print(keypoint.pt,keypoint.size)for keypoint in keypoints]
         
             # detector = cv2.SimpleBlobDetector_create(params)
             # keypoints = detector.detect(thisEvent3[frameNumber])

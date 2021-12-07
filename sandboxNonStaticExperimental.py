@@ -264,7 +264,7 @@ for runName in runNames:
             thisEventImages.append(thisEventImages.pop(0)) # the 0-th frame is removed and added to the end of the event images
             thisEventFrameTimestamps.append(thisEventFrameTimestamps.pop(0)) # the 0-th frame is removed and added to the end of the event images
         thisEventImages = cv2.normalize(np.array(thisEventImages),np.zeros_like(thisEventImages),0,255,cv2.NORM_MINMAX) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
-        subtractor = cv2.createBackgroundSubtractorMOG2
+        # subtractor = cv2.createBackgroundSubtractorMOG2
         # thisEventImages = np.array(thisEventImages)
         # thisEvent3 = np.array(extractForegroundMask(False,True,True,thisEventImages,50,100,35,0)).astype(np.uint8)
         
