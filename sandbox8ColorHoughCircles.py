@@ -9,7 +9,7 @@ import cv2
 import glob
 from os import read, startfile, write
 from os.path import exists
-from numpy.core.numeric import zeros_like
+from numpy.core.numeric import allclose, zeros_like
 from numpy.lib.function_base import rot90
 
 def makeBarHistGraphsSolo(labels,width,barData,title,makeBar: bool,makeHist:bool,folderH):
@@ -79,12 +79,12 @@ def makeBarGraph(labels,width,barLabels,barData,title,yLabel,xLabel, makeBar: bo
 def padEvent(eventImages):
     try:return np.pad(eventImages,[(0,0),(1,1),(1,1)],'constant',constant_values = 255)
     except:return np.pad(eventImages,[(0,0),(1,1),(1,1),(0,0)],'constant',constant_values = 255)
-def initializeImages(eventImages):
+def initializeImages(eventImages):#this simply returns a duplicate array without modifying the original
     newImages = []
     for eventImage in eventImages:
         newImages.append(eventImage)
     return newImages
-def eventFrameStamp(eventNumber,eventImages,eventPrefix,eventTimestamps,labels: bool):
+def eventFrameStamp(eventNumber,eventImages,eventPrefix,eventTimestamps,labels: bool):#this is an aesthethic function
     images = initializeImages(eventImages)
     if labels:
         for frameNumber in range(len(images)):
@@ -95,7 +95,7 @@ def eventFrameStamp(eventNumber,eventImages,eventPrefix,eventTimestamps,labels: 
         for frameNumber in range(len(images)):
             images[frameNumber] = imgNumStamps(addLeadingZeros(2,eventNumber+1)+'-'+addLeadingZeros(3,(frameNumber)%len(images)),0,0,images[frameNumber])    
     return images
-def normalizePixelValues(eventImages,lowerLimit,upperLimit):
+def normalizePixelValues(eventImages,lowerLimit,upperLimit):#this function is unused
     images = np.array(initializeImages(eventImages))
     holder = np.zeros_like(images)
     mid = int(np.mean(images))
@@ -163,7 +163,7 @@ def getEventsFromRun(runFolder): # str - name of grou p, str array - names of ru
         except:
             pass
     return groupName_RFG, runNames_RFG, runTimestamps_RFG, runImages_RFG, valid_RFG
-def concatFrames(image1,image2,axis):
+def concatFrames(image1,image2,axis):#calls np.concatenate
     return np.concatenate((image1,image2),axis)
 def imgNumStamps(frameNum, loc1, loc2, origGrid): # this def includes a frame stamp at [loc1][loc2] on origGrid with frameNum works with '-' character as well
     frameNums = []
@@ -227,6 +227,7 @@ try:
 except:
     pass
 for runName in runNames:
+    circleComposite = []
     Images3 = []
     Images4 = []
     runEventsNoteContent = runName+', Invalid Events: '
@@ -239,12 +240,12 @@ for runName in runNames:
     data_folder_path = data_repo_path + os.path.sep + data_folder_name # THIS LINE MUST BE CORRECT EVERYTHING ELSE IS NOT ESSENTIAL
     runName, eventPrefixes, eventFrameTimestamps, runEventImages, validRunEvents = getEventsFromRun(data_folder_path) # calls getRunsFromGroup data_folder_path MUST BE A COMPLETE PATH, ALL
     print(str(runName)+'/'+str(len(eventPrefixes)))
-    allEventsInFolder = False
+    allEventsInFolder = True
     if allEventsInFolder:
         eventsOfInterest = np.arange(len(eventPrefixes))
     else:
         eventsOfInterest = np.array([8]) # 1-indexing
-        # eventsOfInterest = np.array([1,2,3,4,5,6,8,15,35]) # 1-indexing
+        eventsOfInterest = np.array([1,2,3,4,5,6,8,15,35]) # 1-indexing
         eventsOfInterest = eventsOfInterest[eventsOfInterest <= len(eventPrefixes)]
         for i in range(len(eventsOfInterest)):
             eventsOfInterest[i] -= 1
@@ -265,15 +266,38 @@ for runName in runNames:
         thisEventImages = runEventImages[eventNumber]
         thisEventFrameTimestamps = eventFrameTimestamps[eventNumber]
         eventLength = len(thisEventImages)
+        # cv2.text
         if thisEventFrameTimestamps[0][0] == '0':
             thisEventImages.append(thisEventImages.pop(0)) # the 0-th frame is removed and added to the end of the event images
             thisEventFrameTimestamps.append(thisEventFrameTimestamps.pop(0)) # the 0-th frame is removed and added to the end of the event images
-        thisEventImages = cv2.normalize(np.array(thisEventImages),np.zeros_like(thisEventImages),0,255,cv2.NORM_MINMAX) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
-        thisEventImagesG = extractForegroundMask(False,True,True,thisEventImages,50,100,0,200)
+        thisEventImages = cv2.normalize(np.array(thisEventImages),np.zeros_like(thisEventImages),55,200,cv2.NORM_MINMAX) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
+        thisEventImages = [np.subtract(255,thisEventImagesGs) for thisEventImagesGs in thisEventImages]
+        thisEventImagesGGGG = np.min(thisEventImages[0],-1)
+        thisEventImagesGGGG = np.where(thisEventImagesGGGG>=150,0,1)
+        thisEventImagesGGGG = np.array(thisEventImagesGGGG).astype(np.uint8)
+        # cv2.imshow('test',cv2.merge([thisEventImagesGGGG,thisEventImagesGGGG,thisEventImagesGGGG]))
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+        for frameNumber in range(len(thisEventImages)):
+            for i in range(3):
+                thisEventImages[frameNumber][:,:,i] = np.multiply(thisEventImages[frameNumber][:,:,i],thisEventImagesGGGG)
+        thisEventImages = [cv2.GaussianBlur(thisEventImagesGs,(25,25),cv2.BORDER_DEFAULT) for thisEventImagesGs in thisEventImages]
+        thisEventImages = np.array(thisEventImages).astype(np.uint8)
+        thisEventImagesG = extractForegroundMask(False,True,True,thisEventImages,50,200,0,0)
+        # cv2.imshow('test',thisEventImagesGGGG)
+        # # cv2.imshow('test',cv2.merge([thisEventImagesGGGG,thisEventImagesGGGG,thisEventImagesGGGG]))
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+
+        # thisEventImagesGGG = extractForegroundMask(False,False,True,thisEventImages,10,5,1,0)
+        # for frameNumber in range(len(thisEventImages)):
+        #     # thisEventImagesG[frameNumber] = overlayFrames(thisEventImagesGGG[frameNumber],thisEventImagesG[min([len(thisEventImages)-1,frameNumber+2])])
+        #     thisEventImagesG[frameNumber] = overlayFrames(thisEventImagesGGG[frameNumber],thisEventImagesG[-1])
         # thisEventImagesG = [overlayFrames(thisEventImagesGs,thisEventImagesG[-1])for thisEventImagesGs in thisEventImagesG]
-        blur = 15
-        thisEventImagesG = [cv2.GaussianBlur(thisEventImagesGs,(blur,blur),cv2.BORDER_DEFAULT)for thisEventImagesGs in thisEventImagesG]
+        blur = 1
+        allCircles = np.zeros_like(thisEventImages)
         thisEventImagesG = [np.subtract(255,thisEventImagesGs) for thisEventImagesGs in thisEventImagesG]
+        thisEventImagesG = [cv2.GaussianBlur(thisEventImagesGs,(blur,blur),cv2.BORDER_DEFAULT)for thisEventImagesGs in thisEventImagesG]
         thisEventImagesG = np.array(thisEventImagesG).astype(np.uint8)
         # thisEventImagesG = [np.subtract(255,cv2.cvtColor(thisEventImage,cv2.COLOR_RGB2GRAY))for thisEventImage in thisEventImages]
         # thisEventImages = np.array(thisEventImages)
@@ -287,51 +311,50 @@ for runName in runNames:
         # newImage = np.array(newImage).astype(np.uint)
         foundIt = False
         thisEventImagesGg = []
+        theEventKeys = []
         for frameNumber in range(len(thisEventImages)):
             # thisEvent1[frameNumber] = np.subtract(255,overlayFrames(thisEvent1[frameNumber],thisEvent3[min([frameNumber+12,len(thisEventImages)-1])]))
             params = cv2.SimpleBlobDetector_Params()
-            params.minThreshold = 1
+            params.minThreshold = 150
             params.maxThreshold = 256
-            params.thresholdStep = 255
-            params.filterByArea = False
+            # params.thresholdStep = 255
+            params.filterByArea = True
             params.minArea = 3
-            params.maxArea = 150
-            params.filterByCircularity = False
-            params.minCircularity = 0.5
-            params.filterByConvexity = False
+            params.maxArea = 300
+            params.filterByCircularity = True
+            params.minCircularity = 0.1
+            params.filterByConvexity = True
             params.minConvexity = 0.5
             params.filterByInertia = False
             params.minInertiaRatio = 0.5
-            detector = cv2.SimpleBlobDetector_create()
+            # detector = cv2.SimpleBlobDetector_create()
+            detector = cv2.SimpleBlobDetector_create(params)
             keypoints = detector.detect(thisEventImagesG[frameNumber])
             thisEventImages[frameNumber] = cv2.drawKeypoints(thisEventImages[frameNumber],keypoints,np.array([]),(0,0,255),cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+            if frameNumber > 0:
+                allCircles[frameNumber] = cv2.drawKeypoints(allCircles[frameNumber-1],keypoints,np.array([]),(0,0,255),cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
             thisEventImagesGg.append(cv2.merge([thisEventImagesG[frameNumber],thisEventImagesG[frameNumber],thisEventImagesG[frameNumber]]))
             thisEventImagesGg[frameNumber] = cv2.drawKeypoints(thisEventImagesGg[frameNumber],keypoints,np.array([]),(0,0,255),cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-            print(eventNumber,frameNumber)
-            [print(keypoint.pt,keypoint.size)for keypoint in keypoints]
+            # print(eventNumber,frameNumber)
+            [theEventKeys.append([keypoint.pt,keypoint.size]) for keypoint in keypoints]
         
-            # detector = cv2.SimpleBlobDetector_create(params)
-            # keypoints = detector.detect(thisEvent3[frameNumber])
-            if len(keypoints) > 0:
-                if not foundIt:
-                    [Images.append(concatFrames(thisEventImages[frameNumber-i],thisEventImagesGg[frameNumber-i],1))for i in range(3,0,-1)]
-                foundIt = True
-            # thisEventImages[frameNumber] = cv2.drawKeypoints(thisEventImages[frameNumber],keypoints,np.array([]),(0,0,255),cv2.DRAW_MATCHES_FLAGS_NOT_DRAW_SINGLE_POINTS)
-            # newImage[frameNumber] = cv2.drawKeypoints(newImage[frameNumber],keypoints,np.array([]),(0,0,255),cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-            # newImage1[frameNumber] = cv2.drawKeypoints(thisEvent1[frameNumber],keypoints,np.array([]),(0,0,255),cv2.DRAW_MATCHES_FLAGS_DEFAULT)
-            # # circles = np.array([])
-            # circles = cv2.HoughCircles(thisEvent3[frameNumber],cv2.HOUGH_GRADIENT,1,10,np.array([]),10,10,1,30)
-            # if len(circles) > 0:
-            #     print(circles)
-            #     circles = np.round(circles[0, :]).astype("int")
-            #     print(circles)
-            #     for (x,y,r) in circles:
-            #         newImage[frameNumber] = cv2.circle(newImage[frameNumber],(x,y),1,(0,100,100))
-            #         newImage[frameNumber] = cv2.circle(newImage[frameNumber],(x,y),r,(255,0,255))
-                # Images.append(newImage[frameNumber])
-            if foundIt:
-                # Images.append(thisEventImages[frameNumber])
-                Images.append(concatFrames(thisEventImages[frameNumber],thisEventImagesGg[frameNumber],1))
+            Images.append(concatFrames(concatFrames(thisEventImages[frameNumber],thisEventImagesGg[frameNumber],1),allCircles[frameNumber],1))
                 # Images.append(concatFrames(thisEventImages[frameNumber],newImage[frameNumber],1))
                 # Images.append(concatFrames(thisEventImages[frameNumber],concatFrames(newImage[frameNumber],newImage1[frameNumber],1),1))
+        # thisCircle = allCircles[-1]
+        # print(theEventKeys)
+        thisCircle = cv2.putText(allCircles[-1],str(eventNumber),(0,20),cv2.FONT_HERSHEY_SIMPLEX,1,(255,0,0),1)
+        circleComposite.append(allCircles[-1])
+
+    while len(circleComposite)%10 != 0:
+        circleComposite.append(np.zeros_like(circleComposite[-1]))
+    circleRows = []
+    while len(circleComposite) > 0:
+        circleRows.append(np.concatenate(circleComposite[:10],1))
+        circleComposite = circleComposite[10:]
+    circleGrid = np.concatenate(circleRows,0)
+    circleGrid = np.array(circleGrid).astype(np.uint8)
+    cv2.imwrite(this_repo_path+os.path.sep+folder+os.path.sep+'blob detection grid - '+folder+'.jpg',circleGrid)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 writeAviVideo(videoName = folder+os.path.sep+'Blob Detection - '+folder,frameRate = 1,allImages = Images,openVideo = True,color = True)
