@@ -220,7 +220,7 @@ runNames = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.se
 for i in range(len(runNames)):
     runNames[i] = os.path.basename(runNames[i])
 # print(runNames)
-runNames = ['Cs-137'] # the short name of the folder containing images (tif files)
+# runNames = ['control'] # the short name of the folder containing images (tif files)
 notesContent = []
 try: 
     os.mkdir(this_repo_path+os.path.sep+folder) 
@@ -273,7 +273,7 @@ for runName in runNames:
         thisEventImages = cv2.normalize(np.array(thisEventImages),np.zeros_like(thisEventImages),55,200,cv2.NORM_MINMAX) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
         thisEventImages = [np.subtract(255,thisEventImagesGs) for thisEventImagesGs in thisEventImages]
         thisEventImagesGGGG = np.min(thisEventImages[0],-1)
-        thisEventImagesGGGG = np.where(thisEventImagesGGGG>=150,0,1)
+        thisEventImagesGGGG = np.where(thisEventImagesGGGG>=140,0,1)
         thisEventImagesGGGG = np.array(thisEventImagesGGGG).astype(np.uint8)
         # cv2.imshow('test',cv2.merge([thisEventImagesGGGG,thisEventImagesGGGG,thisEventImagesGGGG]))
         # cv2.waitKey(0)
@@ -315,16 +315,16 @@ for runName in runNames:
         for frameNumber in range(len(thisEventImages)):
             # thisEvent1[frameNumber] = np.subtract(255,overlayFrames(thisEvent1[frameNumber],thisEvent3[min([frameNumber+12,len(thisEventImages)-1])]))
             params = cv2.SimpleBlobDetector_Params()
-            params.minThreshold = 150
+            params.minThreshold = 103
             params.maxThreshold = 256
-            # params.thresholdStep = 255
+            params.thresholdStep = 51
             params.filterByArea = True
-            params.minArea = 3
-            params.maxArea = 300
-            params.filterByCircularity = True
+            params.minArea = 80
+            # params.maxArea = 600
+            params.filterByCircularity = False
             params.minCircularity = 0.1
-            params.filterByConvexity = True
-            params.minConvexity = 0.5
+            params.filterByConvexity = False
+            params.minConvexity = 0.1
             params.filterByInertia = False
             params.minInertiaRatio = 0.5
             # detector = cv2.SimpleBlobDetector_create()
@@ -354,7 +354,8 @@ for runName in runNames:
         circleComposite = circleComposite[10:]
     circleGrid = np.concatenate(circleRows,0)
     circleGrid = np.array(circleGrid).astype(np.uint8)
-    cv2.imwrite(this_repo_path+os.path.sep+folder+os.path.sep+'blob detection grid - '+folder+'.jpg',circleGrid)
+    cv2.imwrite(this_repo_path+os.path.sep+folder+os.path.sep+'blob detection grid - '+folder+' - '+runName+'.jpg',circleGrid)
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
-writeAviVideo(videoName = folder+os.path.sep+'Blob Detection - '+folder,frameRate = 1,allImages = Images,openVideo = True,color = True)
+    writeAviVideo(videoName = folder+os.path.sep+'Blob Detection - '+folder+' - '+runName,frameRate = 1,allImages = Images,openVideo = True,color = True)
+    Images = []

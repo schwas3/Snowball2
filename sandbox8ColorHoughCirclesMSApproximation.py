@@ -216,7 +216,7 @@ data_repo_name = "Snowball8"
 data_repo_path = github_path + os.path.sep + data_repo_name
 data_folder_name = 'SNOWBALL CROPPED IMAGES'
 data_folder_name = 'ColorCroppedTiffs'
-folder = 'run05'
+folder = 'run07'
 runNames = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.sep + folder + os.path.sep + '*')
 for i in range(len(runNames)):
     runNames[i] = os.path.basename(runNames[i])
@@ -272,10 +272,11 @@ for runName in runNames:
         if thisEventFrameTimestamps[0][0] == '0':
             thisEventImages.append(thisEventImages.pop(0)) # the 0-th frame is removed and added to the end of the event images
             thisEventFrameTimestamps.append(thisEventFrameTimestamps.pop(0)) # the 0-th frame is removed and added to the end of the event images
+        thisEventImagesO = np.array(thisEventImages).astype(np.uint8)
         thisEventImages = cv2.normalize(np.array(thisEventImages),np.zeros_like(thisEventImages),55,200,cv2.NORM_MINMAX) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
         thisEventImages = [np.subtract(255,thisEventImagesGs) for thisEventImagesGs in thisEventImages]
         thisEventImagesGGGG = np.min(thisEventImages[0],-1)
-        thisEventImagesGGGG = np.where(thisEventImagesGGGG>=150,0,1)
+        thisEventImagesGGGG = np.where(thisEventImagesGGGG>=190,0,1)
         thisEventImagesGGGG = np.array(thisEventImagesGGGG).astype(np.uint8)
         # cv2.imshow('test',cv2.merge([thisEventImagesGGGG,thisEventImagesGGGG,thisEventImagesGGGG]))
         # cv2.waitKey(0)
@@ -313,20 +314,20 @@ for runName in runNames:
         # newImage = np.array(newImage).astype(np.uint)
         foundIt = False
         thisEventImagesGg = []
-        circleTracker = []
+        circles = []
         for frameNumber in range(len(thisEventImages)):
             # thisEvent1[frameNumber] = np.subtract(255,overlayFrames(thisEvent1[frameNumber],thisEvent3[min([frameNumber+12,len(thisEventImages)-1])]))
             params = cv2.SimpleBlobDetector_Params()
-            params.minThreshold = 150
+            params.minThreshold = 103
             params.maxThreshold = 256
-            # params.thresholdStep = 255
+            params.thresholdStep = 51
             params.filterByArea = True
-            params.minArea = 3
-            params.maxArea = 300
-            params.filterByCircularity = True
+            params.minArea = 80
+            params.maxArea = (len(thisEventImages[0]))**2/4
+            params.filterByCircularity = False
             params.minCircularity = 0.1
-            params.filterByConvexity = True
-            params.minConvexity = 0.5
+            params.filterByConvexity = False
+            params.minConvexity = 0.1
             params.filterByInertia = False
             params.minInertiaRatio = 0.5
             # detector = cv2.SimpleBlobDetector_create()
@@ -338,24 +339,31 @@ for runName in runNames:
             thisEventImagesGg.append(cv2.merge([thisEventImagesG[frameNumber],thisEventImagesG[frameNumber],thisEventImagesG[frameNumber]]))
             thisEventImagesGg[frameNumber] = cv2.drawKeypoints(thisEventImagesGg[frameNumber],keypoints,np.array([]),(0,0,255),cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
             # print(eventNumber,frameNumber)
+            circleTracker = []
             [circleTracker.append([keypoint.pt,keypoint.size]) for keypoint in keypoints]
-            Images.append(concatFrames(concatFrames(thisEventImages[frameNumber],thisEventImagesGg[frameNumber],1),allCircles[frameNumber],1))
+            for [(x1,y1),d1]in circleTracker:
+                newCircle = True
+                for i in range(len(circles)):
+                    x0,y0,d0=circles[i]
+                    if (x0-x1)**2+(y0-y1)**2<=(d0+d1)**2/4:
+                        if d1 > d0:
+                            circles[i]=[x1,y1,d1]
+                        newCircle = False
+                # ***** VERY IMPORTANT ***** THIS(below) COULD BE USED TO ROUGHLY APPROXIMATE THE FRAME WHERE A SNOWBALL FORMS (blur causes shifting but this might be a really good spot to look at using similar to sandboxColor and sandbox8Color ballParkFrame approximations ****** VERY IMPORTANT)
+                if newCircle:
+                    circles.append([x1,y1,d1])
+            thisCircles = np.array(allCircles[frameNumber]).astype(np.uint8)
+            thisCircles = cv2.putText(thisCircles,str(eventNumber),(0,15),cv2.FONT_HERSHEY_COMPLEX_SMALL,1,(255,0,0),1)
+            thisCircles = cv2.putText(thisCircles,str(len(circles)),(0,34),cv2.FONT_HERSHEY_COMPLEX_SMALL,1,(255,0,0),1)
+            thisCircles = cv2.putText(thisCircles,str(frameNumber),(0,53),cv2.FONT_HERSHEY_COMPLEX_SMALL,1,(255,0,0),1)
+            Images.append(concatFrames(thisEventImagesO[frameNumber],concatFrames(concatFrames(thisEventImages[frameNumber],thisEventImagesGg[frameNumber],1),thisCircles,1),1))
                 # Images.append(concatFrames(thisEventImages[frameNumber],newImage[frameNumber],1))
                 # Images.append(concatFrames(thisEventImages[frameNumber],concatFrames(newImage[frameNumber],newImage1[frameNumber],1),1))
-        # thisCircle = allCircles[-1]
+        thisCircle = allCircles[-1]
         # print(theEventKeys)
-        thisCircle = cv2.putText(allCircles[-1],str(eventNumber),(0,20),cv2.FONT_HERSHEY_SIMPLEX,1,(255,0,0),1)
-        circleComposite.append(allCircles[-1])
-        circles = []
-        for [(x1,y1),d1]in circleTracker:
-            newCircle = True
-            for i in range(len(circles)):
-                x0,y0,d0=circles[i]
-                if (x0-x1)**2+(y0-y1)**2<=d1**2/4:
-                    circles[i]=[x1,y1,d1]
-                    newCircle = False
-            if newCircle:
-                circles.append([x1,y1,d1])
+        thisCircle = cv2.putText(thisCircle,str(eventNumber),(0,15),cv2.FONT_HERSHEY_SIMPLEX,1,(255,0,0),1)
+        thisCircle = cv2.putText(thisCircle,str(len(circles)),(0,34),cv2.FONT_HERSHEY_SIMPLEX,1,(255,0,0),1)
+        circleComposite.append(thisCircle)
         scatterCount.append(len(circles))
     while len(circleComposite)%10 != 0:
         circleComposite.append(np.zeros_like(circleComposite[-1]))
@@ -365,8 +373,9 @@ for runName in runNames:
         circleComposite = circleComposite[10:]
     circleGrid = np.concatenate(circleRows,0)
     circleGrid = np.array(circleGrid).astype(np.uint8)
-    # cv2.imwrite(this_repo_path+os.path.sep+folder+os.path.sep+'blob detection grid - '+folder+'.jpg',circleGrid)
+    cv2.imwrite(this_repo_path+os.path.sep+folder+os.path.sep+'blob detection grid - '+folder+' - '+runName+'.jpg',circleGrid)
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
-# writeAviVideo(videoName = folder+os.path.sep+'Blob Detection - '+folder,frameRate = 1,allImages = Images,openVideo = True,color = True)
-print(scatterCount,np.mean(scatterCount),np.std(scatterCount))
+    writeAviVideo(videoName = folder+os.path.sep+'Blob Detection - '+folder+' - '+runName,frameRate = 1,allImages = Images,openVideo = False,color = True)
+    Images = []
+    print(scatterCount,np.mean(scatterCount),np.std(scatterCount))
