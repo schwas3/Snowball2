@@ -11,7 +11,7 @@ from os import read, startfile, write
 from os.path import exists
 from numpy.core.numeric import allclose, zeros_like
 from numpy.lib.function_base import rot90
-
+# this is no longer used primarily, see sandbox8ColorIterate.py and sandbox8ColorIterateEfficiency.py
 def makeBarHistGraphsSolo(labels,width,barData,title,makeBar: bool,makeHist:bool,folderH):
     if makeBar:
         x = np.arange(len(labels))
@@ -220,7 +220,7 @@ runNames = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.se
 for i in range(len(runNames)):
     runNames[i] = os.path.basename(runNames[i])
 # print(runNames)
-# runNames = ['control'] # the short name of the folder containing images (tif files)
+runNames = ['Cs-137'] # the short name of the folder containing images (tif files)
 notesContent = []
 try: 
     os.mkdir(this_repo_path+os.path.sep+folder) 
@@ -240,7 +240,7 @@ for runName in runNames:
     data_folder_path = data_repo_path + os.path.sep + data_folder_name # THIS LINE MUST BE CORRECT EVERYTHING ELSE IS NOT ESSENTIAL
     runName, eventPrefixes, eventFrameTimestamps, runEventImages, validRunEvents = getEventsFromRun(data_folder_path) # calls getRunsFromGroup data_folder_path MUST BE A COMPLETE PATH, ALL
     print(str(runName)+'/'+str(len(eventPrefixes)))
-    allEventsInFolder = True
+    allEventsInFolder = False
     if allEventsInFolder:
         eventsOfInterest = np.arange(len(eventPrefixes))
     else:
@@ -266,14 +266,16 @@ for runName in runNames:
         thisEventImages = runEventImages[eventNumber]
         thisEventFrameTimestamps = eventFrameTimestamps[eventNumber]
         eventLength = len(thisEventImages)
+        minArea = (thisEventImages[0].shape[0]+thisEventImages[0].shape[1])/2
+        maxArea = thisEventImages[0].shape[0]*thisEventImages[0].shape[1]*.75
         # cv2.text
         if thisEventFrameTimestamps[0][0] == '0':
             thisEventImages.append(thisEventImages.pop(0)) # the 0-th frame is removed and added to the end of the event images
             thisEventFrameTimestamps.append(thisEventFrameTimestamps.pop(0)) # the 0-th frame is removed and added to the end of the event images
-        thisEventImages = cv2.normalize(np.array(thisEventImages),np.zeros_like(thisEventImages),55,200,cv2.NORM_MINMAX) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
+        thisEventImages = cv2.normalize(np.array(thisEventImages),np.zeros_like(thisEventImages),0,255,cv2.NORM_MINMAX) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
         thisEventImages = [np.subtract(255,thisEventImagesGs) for thisEventImagesGs in thisEventImages]
-        thisEventImagesGGGG = np.min(thisEventImages[0],-1)
-        thisEventImagesGGGG = np.where(thisEventImagesGGGG>=140,0,1)
+        thisEventImagesGGGG = np.mean(thisEventImages[0],-1)
+        thisEventImagesGGGG = np.where(thisEventImagesGGGG>=200,0,1)
         thisEventImagesGGGG = np.array(thisEventImagesGGGG).astype(np.uint8)
         # cv2.imshow('test',cv2.merge([thisEventImagesGGGG,thisEventImagesGGGG,thisEventImagesGGGG]))
         # cv2.waitKey(0)
@@ -315,18 +317,20 @@ for runName in runNames:
         for frameNumber in range(len(thisEventImages)):
             # thisEvent1[frameNumber] = np.subtract(255,overlayFrames(thisEvent1[frameNumber],thisEvent3[min([frameNumber+12,len(thisEventImages)-1])]))
             params = cv2.SimpleBlobDetector_Params()
-            params.minThreshold = 103
+            params.minThreshold = 226
             params.maxThreshold = 256
-            params.thresholdStep = 51
+            # params.thresholdStep = 50
             params.filterByArea = True
-            params.minArea = 80
-            # params.maxArea = 600
+            # params.minArea = minArea
+            params.minArea = 20
+            # params.maxArea = (len(thisEventImages[0]))**2/4
+            # params.maxArea = maxArea
             params.filterByCircularity = False
-            params.minCircularity = 0.1
+            # params.minCircularity = 0.1
             params.filterByConvexity = False
-            params.minConvexity = 0.1
+            # params.minConvexity = 0.1
             params.filterByInertia = False
-            params.minInertiaRatio = 0.5
+            # params.minInertiaRatio = 0.5
             # detector = cv2.SimpleBlobDetector_create()
             detector = cv2.SimpleBlobDetector_create(params)
             keypoints = detector.detect(thisEventImagesG[frameNumber])
@@ -354,8 +358,8 @@ for runName in runNames:
         circleComposite = circleComposite[10:]
     circleGrid = np.concatenate(circleRows,0)
     circleGrid = np.array(circleGrid).astype(np.uint8)
-    cv2.imwrite(this_repo_path+os.path.sep+folder+os.path.sep+'blob detection grid - '+folder+' - '+runName+'.jpg',circleGrid)
+    cv2.imwrite(this_repo_path+os.path.sep+folder+os.path.sep+'blob detection grid - '+folder+' - '+runName+'X.jpg',circleGrid)
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
-    writeAviVideo(videoName = folder+os.path.sep+'Blob Detection - '+folder+' - '+runName,frameRate = 1,allImages = Images,openVideo = True,color = True)
+    writeAviVideo(videoName = folder+os.path.sep+'Blob Detection - '+folder+' - '+runName+'X',frameRate = 1,allImages = Images,openVideo = False,color = True)
     Images = []

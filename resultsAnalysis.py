@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 import matplotlib.patches as mpatches
-resultsDoc = open('resultsDoc.csv','r')
+resultsDoc = open('resultsDoc2.csv','r')
 headings,d = [],[]
 x=[]
 t=0
@@ -20,14 +20,15 @@ Colors = ['red','green','blue','yellow','orange','purple','cyan','black']
 for i in resultsDoc.readlines()[2::2]:
     i = i.split(',')
     source,group = i[:2]
-    xLabels.append(group+' - '+source)
     if groupT != group:
         g=1-g
-        t += 1
+        t += 3
         # if group[-2:] == '00':
         #     t=-30
     groupT = group
-    y = [int(j)for j in i[4:]]
+    # y = [int(j)for j in i[4:]]
+    y = [int(j)for j in i[4:]if 0<int(j)<4]
+    xLabels.append(group+' - '+source+'('+str(len(y))+')')
     # x = [t]*len(y)
     ymean,yerr = np.mean(y),np.std(y)
     s = 0
@@ -52,4 +53,4 @@ plt.xlabel('Folder',fontsize=20)
 plt.title('Multiple Scatter Analysis',fontsize=28)
 plt.text(t-10,4,'Top Number: Mean\nBottom Number: Std',fontsize=20)
 plt.tight_layout()
-plt.savefig('resultsAnalysis.png')
+plt.savefig('resultsAnalysis41.png')

@@ -218,7 +218,7 @@ data_folder_name = 'ColorCroppedTiffs'
 folders = glob.glob(data_repo_path + os.path.sep +data_folder_name + os.path.sep + '*')
 for i in range(len(folders)):
     folders[i] = os.path.basename(folders[i])
-resultsDoc = open('resultsDoc.csv','w')
+resultsDoc = open('resultsDoc2.csv','w')
 csvWriter = csv.writer(resultsDoc)
 csvWriter.writerow(['Run','Folder','Mean','Std']+[str(i+1)for i in range(80)])
 for folder in folders:
@@ -281,10 +281,10 @@ for folder in folders:
                 thisEventImages.append(thisEventImages.pop(0)) # the 0-th frame is removed and added to the end of the event images
                 thisEventFrameTimestamps.append(thisEventFrameTimestamps.pop(0)) # the 0-th frame is removed and added to the end of the event images
             thisEventImagesO = np.array(thisEventImages).astype(np.uint8)
-            thisEventImages = cv2.normalize(np.array(thisEventImages),np.zeros_like(thisEventImages),55,200,cv2.NORM_MINMAX) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
+            thisEventImages = cv2.normalize(np.array(thisEventImages),np.zeros_like(thisEventImages),0,255,cv2.NORM_MINMAX) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
             thisEventImages = [np.subtract(255,thisEventImagesGs) for thisEventImagesGs in thisEventImages]
             thisEventImagesGGGG = np.min(thisEventImages[0],-1)
-            thisEventImagesGGGG = np.where(thisEventImagesGGGG>=190,0,1)
+            thisEventImagesGGGG = np.where(thisEventImagesGGGG>=200,0,1)
             thisEventImagesGGGG = np.array(thisEventImagesGGGG).astype(np.uint8)
             for frameNumber in range(eventLength):
                 for i in range(3):
@@ -299,12 +299,12 @@ for folder in folders:
             circles = []
             for frameNumber in range(eventLength):
                 params = cv2.SimpleBlobDetector_Params()
-                params.minThreshold = 103
+                params.minThreshold = 226
                 params.maxThreshold = 256
-                params.thresholdStep = 51
+                # params.thresholdStep = 51
                 params.filterByArea = True
                 params.minArea = 80
-                params.maxArea = (len(thisEventImages[0]))**2/4
+                # params.maxArea = (len(thisEventImages[0]))**2/4
                 params.filterByCircularity = False
                 params.filterByConvexity = False
                 params.filterByInertia = False
@@ -324,6 +324,6 @@ for folder in folders:
                     # ***** VERY IMPORTANT ***** THIS(below) COULD BE USED TO ROUGHLY APPROXIMATE THE FRAME WHERE A SNOWBALL FORMS (blur causes shifting but this might be a really good spot to look at using similar to sandboxColor and sandbox8Color ballParkFrame approximations ****** VERY IMPORTANT)
                     if newCircle:
                         circles.append([x1,y1,d1])
-            scatterCount.append(len(circles))
+            scatterCount.append(len([circle for circle in circles if circle[-1]>25]))
         print(np.mean(scatterCount),np.std(scatterCount))
         csvWriter.writerow([runName,folder,str(np.mean(scatterCount)),str(np.std(scatterCount))]+[str(i)for i in scatterCount])

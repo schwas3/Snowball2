@@ -272,15 +272,17 @@ for folder in folders:
             thisEventImages = runEventImages[eventNumber]
             thisEventFrameTimestamps = eventFrameTimestamps[eventNumber]
             eventLength = len(thisEventImages)
+            # minArea = (thisEventImages[0].shape[0]+thisEventImages[0].shape[1])/2
+            # maxArea = thisEventImages[0].shape[0]*thisEventImages[0].shape[1]/2
             # cv2.text
             if thisEventFrameTimestamps[0][0] == '0':
                 thisEventImages.append(thisEventImages.pop(0)) # the 0-th frame is removed and added to the end of the event images
                 thisEventFrameTimestamps.append(thisEventFrameTimestamps.pop(0)) # the 0-th frame is removed and added to the end of the event images
             thisEventImagesO = np.array(thisEventImages).astype(np.uint8)
-            thisEventImages = cv2.normalize(np.array(thisEventImages),np.zeros_like(thisEventImages),55,200,cv2.NORM_MINMAX) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
+            thisEventImages = cv2.normalize(np.array(thisEventImages),np.zeros_like(thisEventImages),0,255,cv2.NORM_MINMAX) # first number: [0,255/2], second number [255/2,255] 0 and 255 mean no normalization
             thisEventImages = [np.subtract(255,thisEventImagesGs) for thisEventImagesGs in thisEventImages]
             thisEventImagesGGGG = np.min(thisEventImages[0],-1)
-            thisEventImagesGGGG = np.where(thisEventImagesGGGG>=190,0,1)
+            thisEventImagesGGGG = np.where(thisEventImagesGGGG>=200,0,1)
             thisEventImagesGGGG = np.array(thisEventImagesGGGG).astype(np.uint8)
             # cv2.imshow('test',cv2.merge([thisEventImagesGGGG,thisEventImagesGGGG,thisEventImagesGGGG]))
             # cv2.waitKey(0)
@@ -322,12 +324,15 @@ for folder in folders:
             for frameNumber in range(len(thisEventImages)):
                 # thisEvent1[frameNumber] = np.subtract(255,overlayFrames(thisEvent1[frameNumber],thisEvent3[min([frameNumber+12,len(thisEventImages)-1])]))
                 params = cv2.SimpleBlobDetector_Params()
-                params.minThreshold = 103
+                params.minThreshold = 226
                 params.maxThreshold = 256
-                params.thresholdStep = 51
+                # params.thresholdStep = 51
                 params.filterByArea = True
+
+                # params.minArea = minArea
+                # params.maxArea = maxArea
                 params.minArea = 80
-                params.maxArea = (len(thisEventImages[0]))**2/4
+                # params.maxArea = (len(thisEventImages[0]))**2/4
                 params.filterByCircularity = False
                 params.minCircularity = 0.1
                 params.filterByConvexity = False
@@ -377,9 +382,9 @@ for folder in folders:
             circleComposite = circleComposite[10:]
         circleGrid = np.concatenate(circleRows,0)
         circleGrid = np.array(circleGrid).astype(np.uint8)
-        cv2.imwrite(this_repo_path+os.path.sep+folder+os.path.sep+'blob detection grid - '+folder+' - '+runName+'.jpg',circleGrid)
+        cv2.imwrite(this_repo_path+os.path.sep+folder+os.path.sep+'blob detection grid - '+folder+' - '+runName+'2.jpg',circleGrid)
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
-        writeAviVideo(videoName = folder+os.path.sep+'Blob Detection - '+folder+' - '+runName,frameRate = 1,allImages = Images,openVideo = False,color = True)
+        writeAviVideo(videoName = folder+os.path.sep+'Blob Detection - '+folder+' - '+runName+'2',frameRate = 1,allImages = Images,openVideo = False,color = True)
         Images = []
         print(np.mean(scatterCount),np.std(scatterCount))
