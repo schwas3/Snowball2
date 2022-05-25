@@ -15,6 +15,7 @@ subfolder = 'Cs-137 Event'
 data_folder_path = data_repo_path+os.path.sep+'SNOWBALL CROPPED IMAGES'
 data_folder_path += os.path.sep + folder
 
+# filenames = glob.glob('C:\\Users\\Scott\\Downloads\\tutorialCaptures\\*')
 filenames = glob.glob(data_folder_path+os.path.sep + subfolder+os.path.sep+'*.bmp')
 # filenames = glob.glob(data_folder_path+os.path.sep + '*'+os.path.sep+'\u2705.bmp')
 
@@ -116,7 +117,7 @@ def useInput(event,x,y,flags,param):
         # cv2.imshow('original',cv2.resize(cv2.rectangle(img,(x1-1,y1-1),(x2+1,y2+1),(255,0,0),1)[y1-20:y2+20,x1-20:x2+20],(int(scale*(x2-x1+40)),int(scale*(y2-y1+40)))))
         # return np.array([[0,0],[]])
     # return 
-a = 2
+a = 1
 A = '383 521 362 466 0'
 x1,x2,y1,y2,rot = [int(i) for i in A.split()]
 rot /= 10
@@ -145,7 +146,7 @@ if a == 2: # make tiffs code
             img = cv2.imread(filename)
             # img = rotate_image(img,rot)
             # img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-            img = img[y1:y2,x1:x2]
+            img = img[y1:y2,x1:x2]  
             print('pepsi')
             cv2.imwrite(filename,img)
         except:
